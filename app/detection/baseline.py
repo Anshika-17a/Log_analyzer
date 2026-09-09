@@ -11,17 +11,17 @@ def _compute_for_group(group_df):
     
     sample_size = len(group_df)
     
-    # We must make sure we resample on 'ts'
-    resampled = group_df.set_index('ts').resample('1h').size()
+    # Group by hourly floor
+    hourly = group_df.groupby(group_df['ts'].dt.floor('1h')).size()
     
-    avg_events = resampled.mean() if not resampled.empty else 0.0
-    std_events = resampled.std(ddof=1) if len(resampled) > 1 else 0.0
+    avg_events = float(hourly.mean()) if not hourly.empty else 0.0
+    std_events = float(hourly.std(ddof=1)) if len(hourly) > 1 else 0.0
     
     if pd.isna(std_events):
         std_events = 0.0
         
     # Guardrail: sparse data gets a wide baseline band
-    if sample_size < 5 or len(resampled) < 2:
+    if sample_size < 5 or len(hourly) < 2:
         std_events = max(std_events, 20.0)
         
     logins = group_df[group_df['event'] == 'login']

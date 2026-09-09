@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.models.schema import Alert, Incident
 from app.correlation.scoring import calculate_score
 from app.remediation.recommendations import generate_recommendations
+from app.detection.mitre_mapping import get_mitre_info
 
 def group_and_correlate(db: Session):
     # Idempotency: clear existing incidents and remove assignment from alerts
@@ -30,6 +31,15 @@ def group_and_correlate(db: Session):
         score, risk_level = calculate_score(group_alerts)
         rule_names = list(set([a.rule_name for a in group_alerts]))
         
+        technique_ids = []
+        for a in group_alerts:
+            t_id = getattr(a, 'mitre_technique_id', None)
+            if not t_id and a.rule_id:
+                t_id = get_mitre_info(a.rule_id).get("technique_id")
+            if t_id and t_id not in technique_ids:
+                technique_ids.append(t_id)
+        mitre_techniques_str = ",".join(technique_ids) if technique_ids else None
+        
         ip_list = group['ip'].dropna().unique().tolist()
         ip_str = ip_list[0] if ip_list else ""
         
@@ -43,7 +53,8 @@ def group_and_correlate(db: Session):
             first_event_time=group['timestamp'].min().isoformat(),
             last_event_time=group['timestamp'].max().isoformat(),
             status="open",
-            updated_at=datetime.datetime.now(datetime.timezone.utc).isoformat()
+            updated_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            mitre_techniques=mitre_techniques_str
         )
         db.add(incident)
         db.flush()

@@ -1,9 +1,13 @@
 import os
+import time
 from drain3 import TemplateMiner
 from drain3.template_miner_config import TemplateMinerConfig
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Models in priority order — confirmed active & available for this API key
+CANDIDATE_MODELS = ["gemini-flash-latest", "gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash"]
 
 
 def cluster_logs(raw_lines: list) -> list:
@@ -13,6 +17,35 @@ def cluster_logs(raw_lines: list) -> list:
         miner.add_log_message(str(line))
     clusters = sorted(miner.drain.clusters, key=lambda c: c.size, reverse=True)
     return [{"template": c.get_template(), "count": c.size} for c in clusters]
+
+
+def _is_retryable(err: Exception) -> bool:
+    """Return True for transient errors (503 overload, 429 rate-limit) that warrant a retry."""
+    msg = str(err)
+    return "503" in msg or "UNAVAILABLE" in msg or "429" in msg or "RESOURCE_EXHAUSTED" in msg
+
+
+def _call_with_retry(client, model_name: str, prompt: str, max_retries: int = 3) -> str | None:
+    """
+    Attempt generate_content with exponential back-off on transient errors.
+    Returns the text on success, or raises the last exception on exhaustion.
+    """
+    delay = 2  # initial wait in seconds
+    last_err = None
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(model=model_name, contents=prompt)
+            if response and response.text:
+                return response.text.strip()
+            return None
+        except Exception as ex:
+            last_err = ex
+            if _is_retryable(ex) and attempt < max_retries - 1:
+                time.sleep(delay)
+                delay *= 2  # back-off: 2s → 4s → 8s
+                continue
+            raise last_err
+    raise last_err
 
 
 def generate_llm_narrative(incident_context: dict, clustered_logs: list) -> str:
@@ -43,13 +76,20 @@ Write a clear, concise two-paragraph executive summary:
 
 Do NOT mention rule IDs, ML scores, or raw log strings. Write as if briefing a CEO."""
 
+    last_err = None
     try:
         from google import genai
         client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt,
-        )
-        return response.text.strip()
+        for model_name in CANDIDATE_MODELS:
+            try:
+                text = _call_with_retry(client, model_name, prompt)
+                if text:
+                    return text
+            except Exception as ex:
+                last_err = ex
+                # 404 = model not found for this key → try next model immediately
+                # other errors (503 exhausted retries) → also try next model
+                continue
+        return f"AI narrative temporarily unavailable. Please try again in a moment. (Last error: {str(last_err)})"
     except Exception as e:
         return f"Failed to generate narrative via Gemini: {str(e)}"

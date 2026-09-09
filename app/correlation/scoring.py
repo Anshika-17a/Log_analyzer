@@ -25,15 +25,20 @@ def calculate_score(alert_group):
                     max_dev = dev
         deviation_component = min(max_dev * 5, 15)
         
-    dynamic_score = rule_component + frequency_bonus + ml_component + deviation_component
+    # Raw score calculation from multi-signal components (can sum up to 155 before normalization):
+    # Rule component (max 90) + Frequency bonus (max 20) + ML component (max 30) + Baseline deviation (max 15)
+    raw_score = rule_component + frequency_bonus + ml_component + deviation_component
     
-    if dynamic_score >= 85:
+    # Final bounded risk score capped at 100:
+    final_score = min(int(round(raw_score)), 100)
+    
+    if final_score >= 85:
         risk_level = "Critical"
-    elif dynamic_score >= 65:
+    elif final_score >= 65:
         risk_level = "High"
-    elif dynamic_score >= 45:
+    elif final_score >= 45:
         risk_level = "Medium"
     else:
         risk_level = "Low"
         
-    return int(dynamic_score), risk_level
+    return final_score, risk_level

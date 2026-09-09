@@ -30,6 +30,9 @@ class Alert(Base):
     log_id = Column(Integer, ForeignKey('logs.id'))
     incident_id = Column(Integer, ForeignKey('incidents.id'))
     created_at = Column(String, server_default=text('CURRENT_TIMESTAMP'))
+    mitre_tactic = Column(String, nullable=True)
+    mitre_technique_id = Column(String, nullable=True)
+    mitre_technique_name = Column(String, nullable=True)
     
     __table_args__ = (
         CheckConstraint("severity IN ('Low', 'Medium', 'High', 'Critical')"),
@@ -49,6 +52,7 @@ class Incident(Base):
     status = Column(String, server_default='open')
     created_at = Column(String, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(String)
+    mitre_techniques = Column(String, nullable=True) # comma-separated deduplicated technique IDs
 
     __table_args__ = (
         CheckConstraint("risk_level IN ('Low', 'Medium', 'High', 'Critical')"),

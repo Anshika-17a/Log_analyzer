@@ -171,6 +171,12 @@ def generate_summary_report_md(incidents):
     md = f"""# Security Summary Report
 Generated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")}
 
+**Total Open Incidents:** {total}
+- **Critical:** {counts["Critical"]}
+- **High:** {counts["High"]}
+- **Medium:** {counts["Medium"]}
+- **Low:** {counts["Low"]}
+
 ## Threat Landscape
 | Level | Count |
 |---|---|

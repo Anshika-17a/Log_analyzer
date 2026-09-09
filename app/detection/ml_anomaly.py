@@ -15,6 +15,7 @@ import pandas as pd
 from sklearn.ensemble import IsolationForest
 
 from app.models.schema import EntityBaseline
+from app.detection.mitre_mapping import get_mitre_info
 
 # ── Features extracted per (user, 1-hour-window) ────────────────────────────
 FEATURE_COLS = [
@@ -170,27 +171,29 @@ def detect_anomalies(db, df: pd.DataFrame, rule_alerts: list) -> list:
         # Build a human-readable evidence string showing the key signals
         signals = []
         if row["failed_login_count"] > 0:
-            signals.append(f"{int(row['failed_login_count'])} failed login(s)")
+            signals.append(f"{int(row['failed_login_count'])} failed login(s) (failed_login_count={int(row['failed_login_count'])})")
         if row["distinct_ips_used"] > 1:
-            signals.append(f"{int(row['distinct_ips_used'])} different IPs used")
+            signals.append(f"{int(row['distinct_ips_used'])} different IPs used (distinct_ips_used={int(row['distinct_ips_used'])})")
         if row["distinct_resources_touched"] > 3:
-            signals.append(f"{int(row['distinct_resources_touched'])} resources accessed")
+            signals.append(f"{int(row['distinct_resources_touched'])} resources accessed (distinct_resources_touched={int(row['distinct_resources_touched'])})")
         if row["off_hours_event_ratio"] > 0.3:
-            signals.append(f"{row['off_hours_event_ratio']*100:.0f}% activity outside working hours")
+            signals.append(f"{row['off_hours_event_ratio']*100:.0f}% activity outside working hours (off_hours_event_ratio={row['off_hours_event_ratio']:.2f})")
         if row["privilege_change_count"] > 0:
-            signals.append(f"{int(row['privilege_change_count'])} privilege escalation event(s)")
+            signals.append(f"{int(row['privilege_change_count'])} privilege escalation event(s) (privilege_change_count={int(row['privilege_change_count'])})")
         if row["blocked_event_ratio"] > 0.1:
-            signals.append(f"{row['blocked_event_ratio']*100:.0f}% of actions were blocked")
+            signals.append(f"{row['blocked_event_ratio']*100:.0f}% of actions were blocked (blocked_event_ratio={row['blocked_event_ratio']:.2f})")
 
         why = ("; ".join(signals) if signals
                else f"{int(row['event_count'])} events in one hour (unusually high for this user)")
 
+        dev_val = round(score * 2.5, 2)
         evidence = (
-            f"User {user} has ML Anomaly Score {score:.2f} "
+            f"User {user} has ML Anomaly Score {score:.2f} (deviation_from_user_baseline={dev_val:.2f}) "
             f"(relative to their own {len(scored[scored['user']==user])} historical hour-windows). "
             f"Key signals: {why}."
         )
 
+        mitre = get_mitre_info("ml_anomaly_001")
         ml_alerts.append({
             "rule_id":        "ml_anomaly_001",
             "rule_name":      "ML Behavioral Anomaly",
@@ -202,6 +205,9 @@ def detect_anomalies(db, df: pd.DataFrame, rule_alerts: list) -> list:
             "log_id":         int(row["log_id"]),
             "ml_anomaly_score": score,
             "evidence":       evidence,
+            "mitre_tactic":   mitre.get("tactic"),
+            "mitre_technique_id": mitre.get("technique_id"),
+            "mitre_technique_name": mitre.get("technique_name"),
         })
 
     return ml_alerts

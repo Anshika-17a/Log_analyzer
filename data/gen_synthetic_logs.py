@@ -1,3 +1,19 @@
+"""
+Synthetic log generator for Security Log Analyzer demo.
+
+Generates a CSV with:
+  - A rich APT (Advanced Persistent Threat) campaign for ONE user that
+    deliberately triggers all 7 detection rules in sequence:
+    1. Brute Force (brute_force_001)
+    2. Impossible Travel (impossible_travel_001)
+    3. Privilege Escalation (priv_esc_001)
+    4. Reconnaissance (recon_001)
+    5. Off-Hours Access (off_hours_001)
+    6. Data Exfiltration Burst (exfil_burst_001)
+    7. Dormant Account (dormant_account_001)
+  - Additional single-rule users so the MITRE matrix has breadth.
+  - Benign background traffic to fill to num_rows.
+"""
 import argparse
 import csv
 import random
@@ -15,6 +31,7 @@ IP_MAP = {
     "NG": ["41.7.0.5", "41.7.1.10"]
 }
 
+
 def generate_benign_event(current_time):
     user = random.choice(USERS)
     event_type = random.choice(["login", "read", "write", "logout"])
@@ -23,86 +40,123 @@ def generate_benign_event(current_time):
     status = random.choices(["success", "failed"], weights=[95, 5])[0]
     return [current_time.isoformat(), user, event_type, resource, ip, status]
 
+
 def generate_synthetic_logs(num_rows, output_file):
-    start_time = datetime.datetime.now() - datetime.timedelta(days=7)
-    
+    base = datetime.datetime(2026, 9, 2, 8, 0, 0)  # Fixed base for reproducibility
     logs = []
-    
-    # 1. Brute-force cluster: one user/IP, 5+ failed logins within 10 minutes
-    bf_user = "user_brute"
-    bf_ip = "10.0.0.99"
-    bf_start = start_time + datetime.timedelta(days=1)
+
+    # ── APT CAMPAIGN for "apt_user_1": all 7 rules in one 24-hour window ──────
+    # The dormant-account rule needs a prior login 30+ days ago
+    dormant_anchor = base - datetime.timedelta(days=40)
+    logs.append([dormant_anchor.isoformat(), "apt_user_1", "login", "/api/login",
+                 IP_MAP["US"][0], "success"])
+
+    # Day 0, 02:00 — Off-hours login (triggers off_hours_001: hour < 6)
+    t = base.replace(hour=2, minute=0)
+    logs.append([t.isoformat(), "apt_user_1", "login", "/api/login", IP_MAP["US"][0], "success"])
+
+    # Day 0, 02:01-02:06 — Brute force: 6 failed logins in 10 min (triggers brute_force_001)
     for i in range(6):
-        ts = bf_start + datetime.timedelta(minutes=i)
-        logs.append([ts.isoformat(), bf_user, "login", "/api/login", bf_ip, "failed"])
+        ts = t + datetime.timedelta(minutes=1, seconds=i * 30)
+        logs.append([ts.isoformat(), "apt_user_1", "login", "/api/login", IP_MAP["US"][0], "failed"])
 
-    # 2. Off-hours login: 23:00 - 06:00
-    off_user = "user_nightowl"
-    off_ip = "10.0.0.15"
-    off_time = start_time.replace(hour=3, minute=15)
-    logs.append([off_time.isoformat(), off_user, "login", "/api/login", off_ip, "success"])
+    # Day 0, 02:07 — Impossible travel: login from Russia within 5 min (triggers impossible_travel_001)
+    ts = t + datetime.timedelta(minutes=7)
+    logs.append([ts.isoformat(), "apt_user_1", "login", "/api/login", IP_MAP["RU"][0], "success"])
 
-    # 3. Impossible-travel pair: same user, 2 IPs/geos within 10 mins
-    imp_user = "user_traveler"
-    imp_time1 = start_time + datetime.timedelta(days=2, hours=12)
-    imp_time2 = imp_time1 + datetime.timedelta(minutes=5)
-    logs.append([imp_time1.isoformat(), imp_user, "login", "/api/login", random.choice(IP_MAP["US"]), "success"])
-    logs.append([imp_time2.isoformat(), imp_user, "login", "/api/login", random.choice(IP_MAP["RU"]), "success"])
+    # Day 0, 02:10 — Privilege escalation (triggers priv_esc_001)
+    ts = t + datetime.timedelta(minutes=10)
+    logs.append([ts.isoformat(), "apt_user_1", "privilege_escalation", "/admin/settings",
+                 IP_MAP["US"][0], "success"])
 
-    # 4. Privilege escalation event
-    priv_user = "user_hacker"
-    priv_time = start_time + datetime.timedelta(days=3)
-    logs.append([priv_time.isoformat(), priv_user, "privilege_escalation", "/admin/settings", random.choice(IP_MAP["US"]), "success"])
-
-    # 5. Export burst: export right after blocked status event
-    exp_user = "user_exfiltrator"
-    exp_time_blocked = start_time + datetime.timedelta(days=4)
-    exp_time_export = exp_time_blocked + datetime.timedelta(seconds=10)
-    logs.append([exp_time_blocked.isoformat(), exp_user, "read", "/api/data", random.choice(IP_MAP["US"]), "blocked"])
-    logs.append([exp_time_export.isoformat(), exp_user, "export", "/api/export", random.choice(IP_MAP["US"]), "success"])
-
-    # Also an export burst
-    burst_time = start_time + datetime.timedelta(days=5)
-    for i in range(105):
-        logs.append([(burst_time + datetime.timedelta(seconds=i)).isoformat(), "user_leaker", "export", "/api/export", "10.0.0.200", "success"])
-
-    # 6. Recon / Access Denial Spray
-    recon_user = "user_scanner"
-    recon_time = start_time + datetime.timedelta(days=6)
+    # Day 0, 02:12-02:22 — Recon: 12 blocked reads within 10 min (triggers recon_001)
     for i in range(12):
-        ts = recon_time + datetime.timedelta(minutes=i*2)
-        logs.append([ts.isoformat(), recon_user, "read", "/api/data", random.choice(IP_MAP["US"]), "blocked"])
+        ts = t + datetime.timedelta(minutes=12, seconds=i * 50)
+        logs.append([ts.isoformat(), "apt_user_1", "read", "/api/data", IP_MAP["US"][0], "blocked"])
 
-    # 7. Dormant Account Login
-    dormant_user = "user_sleepy"
-    dormant_time1 = start_time - datetime.timedelta(days=35) # 35 days ago
-    dormant_time2 = start_time + datetime.timedelta(days=6, hours=12) # present
-    logs.append([dormant_time1.isoformat(), dormant_user, "login", "/api/login", random.choice(IP_MAP["US"]), "success"])
-    logs.append([dormant_time2.isoformat(), dormant_user, "login", "/api/login", random.choice(IP_MAP["US"]), "success"])
+    # Day 0, 02:23 — Blocked event followed immediately by export (triggers exfil_burst_001 by prev_status)
+    ts_blocked = t + datetime.timedelta(minutes=23)
+    ts_export  = ts_blocked + datetime.timedelta(seconds=5)
+    logs.append([ts_blocked.isoformat(), "apt_user_1", "read", "/api/data", IP_MAP["US"][0], "blocked"])
+    logs.append([ts_export.isoformat(),  "apt_user_1", "export", "/api/export", IP_MAP["US"][0], "success"])
 
-    # Fill the rest with benign
-    current_time = start_time
+    # Day 0, 02:24 — Export burst: 105 exports in 2 min (triggers exfil_burst_001 by count)
+    burst_t = ts_export + datetime.timedelta(seconds=30)
+    for i in range(110):
+        ts = burst_t + datetime.timedelta(seconds=i)
+        logs.append([ts.isoformat(), "apt_user_1", "export", "/api/export", IP_MAP["US"][0], "success"])
+
+    # Day 0, 02:27 — Dormant account re-login (triggers dormant_account_001 because >30 days gap from anchor)
+    ts = t + datetime.timedelta(minutes=27)
+    logs.append([ts.isoformat(), "apt_user_1", "login", "/api/login", IP_MAP["UK"][0], "success"])
+
+    # ── Single-rule specialist users for MITRE matrix breadth ────────────────
+
+    # user_brute: pure brute force
+    bf_start = base + datetime.timedelta(hours=4)
+    for i in range(6):
+        logs.append([(bf_start + datetime.timedelta(minutes=i)).isoformat(),
+                     "user_brute", "login", "/api/login", "10.0.0.99", "failed"])
+
+    # user_nightowl: off-hours login
+    logs.append([(base.replace(hour=3, minute=30)).isoformat(),
+                 "user_nightowl", "login", "/api/login", "10.0.0.15", "success"])
+
+    # user_traveler: impossible travel
+    imp_t = base + datetime.timedelta(hours=6)
+    logs.append([(imp_t).isoformat(), "user_traveler", "login", "/api/login", IP_MAP["US"][1], "success"])
+    logs.append([(imp_t + datetime.timedelta(minutes=3)).isoformat(),
+                 "user_traveler", "login", "/api/login", IP_MAP["NG"][0], "success"])
+
+    # user_hacker: privilege escalation
+    logs.append([(base + datetime.timedelta(hours=8)).isoformat(),
+                 "user_hacker", "privilege_escalation", "/admin/settings", IP_MAP["US"][0], "success"])
+
+    # user_exfiltrator: blocked + immediate export
+    exp_t = base + datetime.timedelta(hours=10)
+    logs.append([exp_t.isoformat(), "user_exfiltrator", "read", "/api/data", IP_MAP["US"][0], "blocked"])
+    logs.append([(exp_t + datetime.timedelta(seconds=8)).isoformat(),
+                 "user_exfiltrator", "export", "/api/export", IP_MAP["US"][0], "success"])
+
+    # user_leaker: export burst
+    leak_t = base + datetime.timedelta(hours=12)
+    for i in range(110):
+        logs.append([(leak_t + datetime.timedelta(seconds=i)).isoformat(),
+                     "user_leaker", "export", "/api/export", "10.0.0.200", "success"])
+
+    # user_scanner: recon / blocked spray
+    scan_t = base + datetime.timedelta(hours=14)
+    for i in range(13):
+        logs.append([(scan_t + datetime.timedelta(minutes=i * 2)).isoformat(),
+                     "user_scanner", "read", "/api/data", IP_MAP["US"][1], "blocked"])
+
+    # user_sleepy: dormant account (35 days idle then re-login)
+    dormant_first = base - datetime.timedelta(days=36)
+    logs.append([dormant_first.isoformat(), "user_sleepy", "login", "/api/login", IP_MAP["US"][0], "success"])
+    logs.append([(base + datetime.timedelta(hours=16)).isoformat(),
+                 "user_sleepy", "login", "/api/login", IP_MAP["US"][0], "success"])
+
+    # ── Benign background traffic ─────────────────────────────────────────────
+    current = base
     while len(logs) < num_rows:
-        logs.append(generate_benign_event(current_time))
-        current_time += datetime.timedelta(minutes=random.randint(1, 10))
+        logs.append(generate_benign_event(current))
+        current += datetime.timedelta(minutes=random.randint(1, 10))
 
-    # Sort by timestamp
+    # Sort chronologically and truncate
     logs.sort(key=lambda x: x[0])
-
-    # Truncate to num_rows in case we went over
     logs = logs[:num_rows]
 
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(["timestamp", "user_id", "event_type", "resource", "src_ip", "status"])
         writer.writerows(logs)
-    
+
     print(f"Generated {len(logs)} rows in {output_file}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--rows", type=int, default=500)
-    parser.add_argument("--out", type=str, default="data/sample_logs.csv")
+    parser.add_argument("--out",  type=str, default="data/sample_logs.csv")
     args = parser.parse_args()
-    
     generate_synthetic_logs(args.rows, args.out)

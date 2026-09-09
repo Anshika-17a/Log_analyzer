@@ -62,10 +62,20 @@ bash tests/demo_script.sh
 ## 🛠 Features Breakdown
 
 - **Phase 1 (Ingestion):** Stream-safe CSV parsing using `pandas` chunks.
-- **Phase 2 (Deterministic Rules):** 7 core rules (Brute Force, PrivEsc, Recon, Off-Hours, Mass Deletion, Multiple IPs, Suspicious IP).
+- **Phase 2 (Deterministic Rules):** 7 core rules (Brute Force, Privilege Escalation, Reconnaissance Spray, Off-Hours Access, Impossible Travel, Data Exfiltration Burst, Dormant Account Access).
 - **Phase 3 (ML Anomaly):** Rolling Entity Baselines & Isolation Forest modeling.
 - **Phase 4 (Correlation):** Fuses ML and Rule alerts into scored incidents over 30-minute rolling windows.
 - **Phase 5 (Remediation):** Deterministic priority action mapping with full transactional Audit Logging.
 - **Phase 6 (UI):** Server-rendered Jinja2 Dashboard with Chart.js and Vanilla JS drill-downs.
 - **Phase 7 (Reporting):** Auto-translates raw algorithm math into plain English Executive Summaries (Markdown & PDF).
 - **Phase 8 (LLM Narrative):** Compresses logs via `drain3` and generates Non-Technical LLM summaries.
+- **Phase 10 (MITRE ATT&CK Mapping):** Maps every detection rule to standard MITRE tactics and technique IDs, aggregates techniques per incident, and exposes a MITRE technique matrix endpoint (`GET /api/mitre/matrix`).
+- **Phase 11 (Interactive Attack Graph):** Builds visual entity-relationship attack graphs per incident linking users, IPs, security rules, MITRE techniques, log actions, and remediation playbooks (`GET /api/incidents/{id}/graph`).
+
+---
+
+## 🗄️ Schema updates
+When updating ORM models with new columns (such as Phase 10's MITRE ATT&CK fields `mitre_tactic`, `mitre_technique_id`, `mitre_technique_name`, and `mitre_techniques`), the simplest safe path in early development with SQLite `create_all()` is:
+1. Delete the existing local `logs.db` (or drop all tables via `Base.metadata.drop_all(bind=engine)`).
+2. Restart the server or invoke `init_db()` so SQLAlchemy recreates fresh tables with the updated schema columns.
+

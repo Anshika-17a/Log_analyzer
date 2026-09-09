@@ -109,7 +109,8 @@
         .btn-detect  { background: var(--yellow); color: #1a1100; }
         .btn-correlate { background: var(--green); color: white; }
         .btn-neutral { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-        .btn-danger  { background: #7f1d1d; color: #fca5a5; }
+        .btn-danger  { background: #dc2626; color: white; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .btn-danger:hover { background: #b91c1c; opacity: 1; }
         .pipeline-arrow { color: var(--muted); font-size: 1.1rem; flex-shrink: 0; }
         .pipe-status {
             margin-left: auto;
@@ -306,6 +307,122 @@
         .ml-bar { height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--green), var(--red)); }
         .ml-score-label { font-size: 0.8rem; color: var(--muted); }
 
+        /* Modal Tabs */
+        .modal-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 1rem 0 1.25rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+        .modal-tab {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+        .modal-tab:hover {
+            color: var(--text);
+            background: var(--surface2);
+        }
+        .modal-tab.active {
+            color: #fff;
+            background: var(--primary);
+            border-color: #6366f1;
+        }
+
+        /* Attack Graph Styling */
+        .graph-container {
+            width: 100%;
+            height: 480px;
+            background: #080a10;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+        }
+        .graph-controls {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 4px;
+            z-index: 10;
+        }
+        .graph-controls button {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.15s;
+        }
+        .graph-controls button:hover { opacity: 0.8; }
+        .graph-stats {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            font-size: 0.78rem;
+        }
+        .graph-stat-pill {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 999px;
+            color: var(--muted);
+        }
+        .graph-stat-pill strong {
+            color: var(--text);
+        }
+        .graph-legend {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+        .legend-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .graph-node text {
+            pointer-events: none;
+            user-select: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            fill: #e2e8f0;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        .graph-edge {
+            stroke: #334155;
+            stroke-width: 1.5;
+            transition: stroke 0.2s;
+        }
+        .graph-edge-label {
+            font-size: 9px;
+            fill: #64748b;
+            font-family: 'Inter', sans-serif;
+        }
+
         /* Toast */
         #toast {
             position: fixed; bottom: 1.5rem; right: 1.5rem;
@@ -316,6 +433,563 @@
             transition: all 0.2s; z-index: 999; pointer-events: none;
         }
         #toast.show { opacity: 1; transform: translateY(0); }
+
+        /* ── VIEW TABS ── */
+        .view-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.8rem;
+            align-items: center;
+        }
+        .view-tab {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.6rem 1.25rem;
+            color: var(--muted);
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+        }
+        .view-tab:hover {
+            color: var(--text);
+            border-color: rgba(148, 163, 184, 0.4);
+        }
+        .view-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+        }
+
+        /* ── MITRE ATT&CK HEATMAP MATRIX ── */
+        .mitre-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .mitre-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .mitre-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .mitre-subtitle {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        .mitre-legend {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--muted);
+            background: var(--surface2);
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+        }
+        .mitre-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .mitre-legend-swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .mitre-grid {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(130px, 1fr));
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        .mitre-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .mitre-col-title {
+            background: #1e2433;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text);
+            text-align: center;
+            border-top: 3px solid var(--primary);
+            min-height: 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+        .mitre-col-count {
+            font-size: 0.65rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .mitre-cell {
+            background: rgba(30, 41, 59, 0.45);
+            border: 1px solid rgba(51, 65, 85, 0.45);
+            border-radius: 8px;
+            padding: 9px 10px;
+            min-height: 80px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+        .mitre-cell:hover {
+            transform: translateY(-2px);
+            border-color: rgba(148, 163, 184, 0.8);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+        .mitre-cell-tech {
+            font-family: 'Inter', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 3px;
+        }
+        .mitre-cell-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            line-height: 1.25;
+            word-break: break-word;
+        }
+        .mitre-cell-badge {
+            margin-top: 6px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            align-self: flex-start;
+        }
+
+        /* Active Heat Levels */
+        .heat-0 {
+            background: rgba(30, 41, 59, 0.35);
+            border-color: rgba(51, 65, 85, 0.4);
+        }
+        .heat-0 .mitre-cell-badge {
+            background: rgba(51, 65, 85, 0.5);
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .heat-low {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(217, 119, 6, 0.26)) !important;
+            border: 1px solid rgba(245, 158, 11, 0.7) !important;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+        }
+        .heat-low .mitre-cell-tech { color: #fbbf24 !important; }
+        .heat-low .mitre-cell-name { color: #fef3c7 !important; }
+        .heat-low .mitre-cell-badge { background: rgba(245, 158, 11, 0.35) !important; color: #fef3c7 !important; }
+
+        .heat-med {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.24), rgba(234, 88, 12, 0.36)) !important;
+            border: 1px solid rgba(249, 115, 22, 0.85) !important;
+            box-shadow: 0 0 16px rgba(249, 115, 22, 0.35);
+        }
+        .heat-med .mitre-cell-tech { color: #fb923c !important; }
+        .heat-med .mitre-cell-name { color: #ffedd5 !important; }
+        .heat-med .mitre-cell-badge { background: #ea580c !important; color: #ffffff !important; }
+
+        .heat-high {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.32), rgba(185, 28, 28, 0.48)) !important;
+            border: 1px solid rgba(239, 68, 68, 0.95) !important;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+            animation: pulse-border 2.5s infinite;
+        }
+        .heat-high .mitre-cell-tech { color: #fca5a5 !important; }
+        .heat-high .mitre-cell-name { color: #ffffff !important; }
+        .heat-high .mitre-cell-badge { background: #dc2626 !important; color: #ffffff !important; }
+
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(239, 68, 68, 0.95); box-shadow: 0 0 16px rgba(239, 68, 68, 0.45); }
+            50% { border-color: rgba(248, 113, 113, 1); box-shadow: 0 0 24px rgba(239, 68, 68, 0.7); }
+        }
+
+        /* Technique Inspector Drawer */
+        #mitreInspector {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-top: 1.25rem;
+            display: none;
+            position: relative;
+        }
+
+        /* ── ONE-CLICK SIMULATE LIVE ATTACK DEMO PRESETS ── */
+        .sim-showcase {
+            background: linear-gradient(135deg, rgba(30, 27, 75, 0.45) 0%, rgba(15, 23, 42, 0.7) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            border-radius: 14px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.25rem;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+        }
+        .sim-showcase-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .sim-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sim-pitch-badge {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: #ffffff;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 4px 11px;
+            border-radius: 999px;
+            box-shadow: 0 0 14px rgba(99, 102, 241, 0.5);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+        .sim-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+        .sim-subtitle {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+        .sim-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        @media (max-width: 1024px) {
+            .sim-actions-grid { grid-template-columns: 1fr; }
+        }
+
+        .sim-btn-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.1rem 1.25rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+            font-family: 'Inter', sans-serif;
+        }
+        .sim-btn-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            transition: opacity 0.25s;
+        }
+        .sim-btn-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .sim-btn-card:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* APT29 Card */
+        .sim-card-apt29::before { background: linear-gradient(90deg, #ef4444, #dc2626); }
+        .sim-card-apt29:hover {
+            border-color: rgba(239, 68, 68, 0.65);
+            background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, var(--surface2) 100%);
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25);
+        }
+
+        /* Insider Card */
+        .sim-card-insider::before { background: linear-gradient(90deg, #f97316, #ea580c); }
+        .sim-card-insider:hover {
+            border-color: rgba(249, 115, 22, 0.65);
+            background: linear-gradient(180deg, rgba(249, 115, 22, 0.08) 0%, var(--surface2) 100%);
+            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.25);
+        }
+
+        /* Benign Card */
+        .sim-card-benign::before { background: linear-gradient(90deg, #10b981, #059669); }
+        .sim-card-benign:hover {
+            border-color: rgba(16, 185, 129, 0.65);
+            background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, var(--surface2) 100%);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+        }
+
+        .sim-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .sim-card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sim-card-icon { font-size: 1.15rem; flex-shrink: 0; }
+        .sim-card-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.25;
+        }
+        .sim-card-pill {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 999px;
+            white-space: nowrap;
+            letter-spacing: 0.04em;
+        }
+        .pill-crit { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .pill-high { background: rgba(249, 115, 22, 0.2); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.4); }
+        .pill-clean { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+        .sim-card-desc {
+            font-size: 0.77rem;
+            color: var(--muted);
+            line-height: 1.45;
+            margin-top: 2px;
+        }
+        .sim-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.73rem;
+            color: #94a3b8;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 8px;
+            margin-top: 4px;
+        }
+        .sim-card-footer span { display: inline-flex; align-items: center; gap: 4px; }
+
+        /* ── LIVE CYBER TERMINAL TICKER ── */
+        .sim-terminal-wrap {
+            margin-top: 1.15rem;
+            background: #080c14;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            font-family: 'Consolas', 'Courier New', monospace;
+            animation: fadeInTerminal 0.3s ease;
+        }
+        @keyframes fadeInTerminal {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .sim-terminal-bar {
+            background: #0f172a;
+            border-bottom: 1px solid #1e293b;
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sim-term-dots {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sim-term-dot {
+            width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+        }
+        .term-dot-red { background: #ef4444; }
+        .term-dot-yellow { background: #f59e0b; }
+        .term-dot-green { background: #10b981; }
+
+        .sim-term-title {
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.04em;
+        }
+        .sim-term-live-pulse {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 10px #ef4444;
+            animation: livePulse 1.2s infinite;
+        }
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.85); }
+        }
+
+        .sim-terminal-body {
+            height: 190px;
+            overflow-y: auto;
+            padding: 10px 14px;
+            font-size: 0.76rem;
+            line-height: 1.55;
+            color: #cbd5e1;
+            scroll-behavior: smooth;
+            background: radial-gradient(ellipse at top left, rgba(15, 23, 42, 0.4) 0%, #080c14 80%);
+        }
+        .sim-terminal-body::-webkit-scrollbar { width: 6px; }
+        .sim-terminal-body::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+        .sim-term-line {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 4px;
+            word-break: break-all;
+            animation: linePop 0.15s ease;
+        }
+        @keyframes linePop {
+            from { opacity: 0; transform: translateX(-4px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .sim-term-ts { color: #64748b; font-size: 0.7rem; flex-shrink: 0; }
+        .sim-term-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 3px;
+            flex-shrink: 0;
+            letter-spacing: 0.04em;
+        }
+        .sim-tag-critical { background: #7f1d1d; color: #fecaca; border: 1px solid #ef4444; }
+        .sim-tag-high     { background: #7c2d12; color: #fed7aa; border: 1px solid #f97316; }
+        .sim-tag-medium   { background: #713f12; color: #fef08a; border: 1px solid #eab308; }
+        .sim-tag-clean    { background: #064e3b; color: #a7f3d0; border: 1px solid #10b981; }
+
+        .sim-term-user { color: #818cf8; font-weight: 600; flex-shrink: 0; }
+        .sim-term-action { color: #f8fafc; font-weight: 600; flex-shrink: 0; }
+        .sim-term-res { color: #94a3b8; }
+        .sim-term-ip { color: #38bdf8; flex-shrink: 0; }
+        .sim-term-status {
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 0 4px;
+            border-radius: 2px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .st-ok   { color: #4ade80; }
+        .st-fail { color: #fbbf24; }
+        .st-blk  { color: #f87171; }
+
+        .sim-terminal-footer {
+            background: #0f172a;
+            border-top: 1px solid #1e293b;
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .sim-prog-wrap {
+            flex: 1;
+            height: 6px;
+            background: #1e293b;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .sim-prog-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+            transition: width 0.2s ease;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+        }
+        .sim-prog-status {
+            font-size: 0.74rem;
+            color: #94a3b8;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ── SIMULATION SUCCESS BANNER ── */
+        .sim-banner {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 27, 75, 0.95));
+            border: 1px solid rgba(99, 102, 241, 0.5);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
+            border-radius: 12px;
+            padding: 0.9rem 1.4rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            animation: slideDownBanner 0.3s ease;
+        }
+        @keyframes slideDownBanner {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .sim-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sim-banner-icon { font-size: 1.5rem; }
+        .sim-banner-title { font-size: 0.92rem; font-weight: 700; color: #f8fafc; }
+        .sim-banner-sub { font-size: 0.78rem; color: #94a3b8; margin-top: 2px; }
+        .sim-banner-actions { display: flex; align-items: center; gap: 8px; }
 
         @media (max-width: 900px) {
             .grid2 { grid-template-columns: 1fr; }
@@ -337,6 +1011,122 @@
 
 <div class="main">
 
+    <!-- SIMULATION BANNER (If recently run) -->
+    <div id="simSuccessBanner" class="sim-banner" style="display:none;">
+        <div class="sim-banner-left">
+            <div class="sim-banner-icon" id="simBannerIcon">⚡</div>
+            <div>
+                <div class="sim-banner-title" id="simBannerTitle">Simulation Telemetry Injected</div>
+                <div class="sim-banner-sub" id="simBannerSub">All logs ingested, detection rules fired, and incidents correlated.</div>
+            </div>
+        </div>
+        <div class="sim-banner-actions">
+            <button class="btn btn-upload" id="simBtnOpenGraph" onclick="openSimTopGraph()" style="font-size:0.8rem; padding:0.4rem 0.9rem;">
+                🕸️ Open Attack Graph
+            </button>
+            <button class="btn btn-neutral" onclick="switchView('mitre')" style="font-size:0.8rem; padding:0.4rem 0.9rem;">
+                🗺️ View MITRE Matrix
+            </button>
+            <button onclick="dismissSimBanner()" style="background:none; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer; padding:4px 8px;" title="Dismiss">&times;</button>
+        </div>
+    </div>
+
+    <!-- ⚡ ONE-CLICK LIVE ATTACK DEMO PRESETS -->
+    <div class="sim-showcase">
+        <div class="sim-showcase-header">
+            <div class="sim-header-left">
+                <span class="sim-pitch-badge">⚡ PITCH DEMO MODE</span>
+                <div>
+                    <div class="sim-title">One-Click "Simulate Live Attack" Showcase</div>
+                    <div class="sim-subtitle">Zero-friction 30-second live demo for judges &amp; stakeholders &mdash; streams authentic raw telemetry through the entire ingestion, Sigma rules, and ML baseline pipeline in real time.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sim-actions-grid">
+            <!-- 🔴 APT29 -->
+            <button class="sim-btn-card sim-card-apt29" id="btnSimApt29" onclick="simulateAttack('apt29', this)" title="Simulate an advanced persistent threat campaign">
+                <div class="sim-card-top">
+                    <div class="sim-card-title-group">
+                        <span class="sim-card-icon">🔴</span>
+                        <span class="sim-card-title">Simulate APT29 State-Sponsored Breach</span>
+                    </div>
+                    <span class="sim-card-pill pill-crit">CRITICAL</span>
+                </div>
+                <div class="sim-card-desc">
+                    Multi-stage kill chain: Brute Force &bull; Impossible Travel (Moscow IP) &bull; Root PrivEsc &bull; Subnet Recon &bull; Bulk Data Exfiltration.
+                </div>
+                <div class="sim-card-footer">
+                    <span>⚡ 255 Raw Logs &bull; 68 Alerts</span>
+                    <span style="color:#f87171; font-weight:700;">Score: 100/100 &rarr;</span>
+                </div>
+            </button>
+
+            <!-- 🟠 INSIDER -->
+            <button class="sim-btn-card sim-card-insider" id="btnSimInsider" onclick="simulateAttack('insider', this)" title="Simulate insider data exfiltration">
+                <div class="sim-card-top">
+                    <div class="sim-card-title-group">
+                        <span class="sim-card-icon">🟠</span>
+                        <span class="sim-card-title">Simulate Insider Data Exfiltration</span>
+                    </div>
+                    <span class="sim-card-pill pill-high">HIGH RISK</span>
+                </div>
+                <div class="sim-card-desc">
+                    Behavioral anomaly: Normal dev baseline &bull; 02:45 AM off-hours login &bull; 115 Confidential Files export &bull; ML deviation spike.
+                </div>
+                <div class="sim-card-footer">
+                    <span>⚡ 242 Raw Logs &bull; 31 Alerts</span>
+                    <span style="color:#fb923c; font-weight:700;">Score: ~75/100 &rarr;</span>
+                </div>
+            </button>
+
+            <!-- 🟢 BENIGN -->
+            <button class="sim-btn-card sim-card-benign" id="btnSimBenign" onclick="simulateAttack('benign', this)" title="Simulate normal enterprise business traffic baseline">
+                <div class="sim-card-top">
+                    <div class="sim-card-title-group">
+                        <span class="sim-card-icon">🟢</span>
+                        <span class="sim-card-title">Simulate Normal Business Traffic</span>
+                    </div>
+                    <span class="sim-card-pill pill-clean">CLEAN BASELINE</span>
+                </div>
+                <div class="sim-card-desc">
+                    Clean enterprise workday: Regular working hours &bull; Routine CRM, portal, and email traffic &bull; 0 Deterministic Rule Violations.
+                </div>
+                <div class="sim-card-footer">
+                    <span>⚡ 160 Raw Logs &bull; 0 Attack Rules</span>
+                    <span style="color:#34d399; font-weight:700;">False Positives: 0 &rarr;</span>
+                </div>
+            </button>
+        </div>
+
+        <!-- ANIMATED LIVE TERMINAL TICKER -->
+        <div class="sim-terminal-wrap" id="simTerminalWrap" style="display:none;">
+            <div class="sim-terminal-bar">
+                <div class="sim-term-dots">
+                    <span class="sim-term-dot term-dot-red"></span>
+                    <span class="sim-term-dot term-dot-yellow"></span>
+                    <span class="sim-term-dot term-dot-green"></span>
+                </div>
+                <div class="sim-term-title">
+                    <span class="sim-term-live-pulse"></span>
+                    <span id="simTermTitleText">LIVE ATTACK TELEMETRY INJECTOR &bull; Streaming Raw Security Logs</span>
+                </div>
+                <div style="font-size:0.7rem; color:#64748b;" id="simTermCount">0 logs streaming</div>
+            </div>
+            <div class="sim-terminal-body" id="simTerminalLog">
+                <!-- Streaming records dynamically appear here -->
+            </div>
+            <div class="sim-terminal-footer">
+                <div class="sim-prog-wrap">
+                    <div class="sim-prog-bar" id="simProgressBar"></div>
+                </div>
+                <div class="sim-prog-status" id="simProgStatus">
+                    <span>⚡ Initializing simulation pipeline...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- PIPELINE -->
     <div class="pipeline">
         <label>Pipeline</label>
@@ -344,11 +1134,10 @@
         <button class="btn btn-upload" id="btnUpload" onclick="runPipeline()">
             ▶ Run Full Analysis
         </button>
-        <span class="pipeline-arrow">or run manually →</span>
-        <button class="btn btn-upload"   id="btnStep1" onclick="doUpload()">① Upload</button>
-        <button class="btn btn-detect"   id="btnStep2" onclick="doDetect()">② Detect</button>
-        <button class="btn btn-correlate" id="btnStep3" onclick="doCorrelate()">③ Correlate & Reload</button>
-        <div class="pipe-status" id="pipeStatus">Select a CSV and click ▶ Run Full Analysis</div>
+        <button class="btn btn-danger" id="btnReset" onclick="resetSystem()" title="Permanently clean all logs, alerts, and incidents to upload a new file">
+            🔄 Reset Data
+        </button>
+        <div class="pipe-status" id="pipeStatus">Select a log file and click ▶ Run Full Analysis</div>
     </div>
 
     <!-- KPI ROW -->
@@ -375,70 +1164,410 @@
         </div>
     </div>
 
-    <!-- MAIN GRID -->
-    <div class="grid2">
+    <!-- MAIN VIEW SWITCHER TABS -->
+    <div class="view-tabs">
+        <button class="view-tab active" id="tabBtnIncidentsView" onclick="switchView('incidents')">
+            📋 Incident Queue & Threat Breakdown
+        </button>
+        <button class="view-tab" id="tabBtnMitreView" onclick="switchView('mitre')">
+            🗺️ MITRE ATT&CK® Enterprise Matrix Heatmap <span class="badge" id="mitreTotalHitsBadge" style="background:#dc2626; color:white; font-size:0.75rem; margin-left:6px;">0 Active Hits</span>
+        </button>
+    </div>
 
-        <!-- CHART -->
-        <div class="panel">
-            <div class="panel-title">Risk Distribution</div>
-            {% if counts.total > 0 %}
-            <div class="chart-wrap">
-                <canvas id="riskChart"></canvas>
+    <!-- VIEW 1: INCIDENTS & ANALYTICS PANE -->
+    <div id="viewIncidentsPane">
+        <!-- ACTIVE DETECTION RULES MATRIX -->
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1rem 1.25rem; margin-bottom:1.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                <div style="font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text); display:flex; align-items:center; gap:8px;">
+                    <span>🛡️ Built-in Security Detection Rules (7 Core Rules + ML Baseline)</span>
+                    <span style="font-size:0.7rem; background:#052e16; color:#86efac; padding:2px 8px; border-radius:999px;">100% OPERATIONAL</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--muted);">All 7 deterministic threat rules actively evaluated</div>
             </div>
-            {% else %}
-            <div style="height:240px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:0.9rem; text-align:center;">
-                No incidents yet.<br>Upload a log file to begin.
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:0.6rem;">
+                <div style="background:var(--surface2); border:1px solid var(--border); border-left:3px solid #ef4444; border-radius:6px; padding:6px 10px;">
+                    <div style="font-size:0.75rem; font-weight:600; color:var(--text);">1. Brute Force</div>
+                    <div style="font-size:0.68rem; color:var(--muted);">T1110 &bull; 85 pts</div>
+                </div>
+                <div style="background:var(--surface2); border:1px solid var(--border); border-left:3px solid #ef4444; border-radius:6px; padding:6px 10px;">
+                    <div style="font-size:0.75rem; font-weight:600; color:var(--text);">2. Privilege Escalation</div>
+                    <div style="font-size:0.68rem; color:var(--muted);">T1068 &bull; 90 pts</div>
+                </div>
+                <div style="background:var(--surface2); border:1px solid var(--border); border-left:3px solid #f59e0b; border-radius:6px; padding:6px 10px;">
+                    <div style="font-size:0.75rem; font-weight:600; color:var(--text);">3. Reconnaissance</div>
+                    <div style="font-size:0.68rem; color:var(--muted);">T1087 &bull; 60 pts</div>
+                </div>
+                <div style="background:var(--surface2); border:1px solid var(--border); border-left:3px solid #3b82f6; border-radius:6px; padding:6px 10px;">
+                    <div style="font-size:0.75rem; font-weight:600; color:var(--text);">4. Off-Hours Access</div>
+                    <div style="font-size:0.68rem; color:var(--muted);">T1078 &bull; 40 pts</div>
+                </div>
+                <div style="background:var(--surface2); border:1px solid var(--border); border-left:3px solid #ef4444; border-radius:6px; padding:6px 10px;">
+                    <div style="font-size:0.75rem; font-weight:600; color:var(--text);">5. Impossible Travel</div>
+                    <div style="font-size:0.68rem; color:var(--muted);">T1078 &bull; 75 pts</div>
+                </div>
+                <div style="background:var(--surface2); border:1px solid var(--border); border-left:3px solid #ef4444; border-radius:6px; padding:6px 10px;">
+                    <div style="font-size:0.75rem; font-weight:600; color:var(--text);">6. Exfiltration Burst</div>
+                    <div style="font-size:0.68rem; color:var(--muted);">T1567 &bull; 80 pts</div>
+                </div>
+                <div style="background:var(--surface2); border:1px solid var(--border); border-left:3px solid #f97316; border-radius:6px; padding:6px 10px;">
+                    <div style="font-size:0.75rem; font-weight:600; color:var(--text);">7. Dormant Account</div>
+                    <div style="font-size:0.68rem; color:var(--muted);">T1078.001 &bull; 70 pts</div>
+                </div>
+                <div style="background:var(--surface2); border:1px solid var(--border); border-left:3px solid #a855f7; border-radius:6px; padding:6px 10px;">
+                    <div style="font-size:0.75rem; font-weight:600; color:var(--text);">+ Per-User ML Baseline</div>
+                    <div style="font-size:0.68rem; color:var(--muted);">IsolationForest &bull; 9D Vector</div>
+                </div>
             </div>
-            {% endif %}
         </div>
 
-        <!-- INCIDENT TABLE -->
-        <div class="panel">
-            <div class="panel-title">Ranked Incidents (Top 20 by Score) — Click a row for details</div>
-            <div class="table-wrap">
-                {% if top_incidents %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>User</th>
-                            <th>Risk</th>
-                            <th>Score</th>
-                            <th># Alerts</th>
-                            <th>Rules Fired</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for inc in top_incidents %}
-                        <tr class="irow" onclick="openModal({{ inc.id }})">
-                            <td style="color:var(--muted); font-size:0.8rem;">{{ inc.id }}</td>
-                            <td><strong>{{ inc.user }}</strong></td>
-                            <td>
-                                {% if inc.risk_level == 'Critical' %}<span class="risk-badge r-critical">● Critical</span>
-                                {% elif inc.risk_level == 'High' %}<span class="risk-badge r-high">● High</span>
-                                {% elif inc.risk_level == 'Medium' %}<span class="risk-badge r-medium">● Medium</span>
-                                {% else %}<span class="risk-badge r-low">● Low</span>{% endif %}
-                            </td>
-                            <td><strong>{{ inc.score }}</strong></td>
-                            <td>{{ inc.alert_count }}</td>
-                            <td style="font-size:0.78rem; color:var(--muted);">{{ inc.rules }}</td>
-                            <td>
-                                {% if inc.status == 'open' %}<span class="status-badge s-open">open</span>
-                                {% elif inc.status == 'reviewing' %}<span class="status-badge s-reviewing">reviewing</span>
-                                {% elif inc.status == 'resolved' %}<span class="status-badge s-resolved">resolved</span>
-                                {% elif inc.status == 'false_positive' %}<span class="status-badge s-false_positive">false positive</span>
-                                {% else %}<span class="status-badge">{{ inc.status }}</span>{% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <!-- MAIN GRID -->
+        <div class="grid2">
+            <!-- CHART -->
+            <div class="panel">
+                <div class="panel-title">Risk Distribution</div>
+                {% if counts.total > 0 %}
+                <div class="chart-wrap">
+                    <canvas id="riskChart"></canvas>
+                </div>
                 {% else %}
-                <div style="padding:3rem; text-align:center; color:var(--muted);">
-                    No incidents found. Upload a log CSV and run the pipeline above.
+                <div style="height:240px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:0.9rem; text-align:center;">
+                    No incidents yet.<br>Upload a log file to begin.
                 </div>
                 {% endif %}
+            </div>
+
+            <!-- INCIDENT TABLE -->
+            <div class="panel">
+                <div class="panel-title">Ranked Incidents (Top 20 by Score) — Click a row for details</div>
+                <div class="table-wrap">
+                    {% if top_incidents %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>User</th>
+                                <th>Risk</th>
+                                <th>Score (0–100)</th>
+                                <th># Alerts</th>
+                                <th>Rules Fired</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inc in top_incidents %}
+                            <tr class="irow" onclick="openModal({{ inc.id }})">
+                                <td style="color:var(--muted); font-size:0.8rem;">{{ inc.id }}</td>
+                                <td><strong>{{ inc.user }}</strong></td>
+                                <td>
+                                    {% if inc.risk_level == 'Critical' %}<span class="risk-badge r-critical">● Critical</span>
+                                    {% elif inc.risk_level == 'High' %}<span class="risk-badge r-high">● High</span>
+                                    {% elif inc.risk_level == 'Medium' %}<span class="risk-badge r-medium">● Medium</span>
+                                    {% else %}<span class="risk-badge r-low">● Low</span>{% endif %}
+                                </td>
+                                <td><strong>{{ inc.score }}</strong><span style="font-size:0.75rem; color:var(--muted)">/100</span></td>
+                                <td>{{ inc.alert_count }}</td>
+                                <td style="font-size:0.78rem; color:var(--muted);">{{ inc.rules }}</td>
+                                <td>
+                                    {% if inc.status == 'open' %}<span class="status-badge s-open">open</span>
+                                    {% elif inc.status == 'reviewing' %}<span class="status-badge s-reviewing">reviewing</span>
+                                    {% elif inc.status == 'resolved' %}<span class="status-badge s-resolved">resolved</span>
+                                    {% elif inc.status == 'false_positive' %}<span class="status-badge s-false_positive">false+</span>
+                                    {% else %}<span class="status-badge">{{ inc.status }}</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div style="padding:3rem; text-align:center; color:var(--muted);">
+                        No incidents found. Upload a log CSV and run the pipeline above.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 2: MITRE ATT&CK ENTERPRISE HEATMAP MATRIX PANE -->
+    <div id="viewMitrePane" style="display:none;">
+        <div class="mitre-panel">
+            <div class="mitre-header">
+                <div>
+                    <div class="mitre-title">
+                        <span>🗺️ MITRE ATT&CK® Enterprise Matrix — Live Adversary Heatmap</span>
+                        <span class="badge" id="mitreActiveBadge" style="background:#dc2626; color:white;">0 Detections</span>
+                    </div>
+                    <div class="mitre-subtitle">
+                        Real-time mapping of detected threat signals, lateral movement, credential abuse, and exfiltration across the 8 primary ATT&CK tactics. Click any technique to inspect forensic alerts.
+                    </div>
+                </div>
+                <div class="mitre-legend">
+                    <span style="font-weight:600; color:var(--text); margin-right:4px;">Heat Intensity:</span>
+                    <div class="mitre-legend-item">
+                        <span class="mitre-legend-swatch" style="background:rgba(30, 41, 59, 0.5); border:1px solid rgba(51, 65, 85, 0.6);"></span>
+                        <span>0 Hits (Monitored)</span>
+                    </div>
+                    <div class="mitre-legend-item">
+                        <span class="mitre-legend-swatch" style="background:#f59e0b;"></span>
+                        <span>1–2 Low</span>
+                    </div>
+                    <div class="mitre-legend-item">
+                        <span class="mitre-legend-swatch" style="background:#ea580c;"></span>
+                        <span>3–10 Elevated</span>
+                    </div>
+                    <div class="mitre-legend-item">
+                        <span class="mitre-legend-swatch" style="background:#dc2626; box-shadow:0 0 8px #dc2626;"></span>
+                        <span>11+ Critical</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8 COLUMNS GRID -->
+            <div class="mitre-grid">
+                <!-- COL 1: Initial Access -->
+                <div class="mitre-col">
+                    <div class="mitre-col-title">
+                        <span>1. Initial Access</span>
+                        <span class="mitre-col-count" id="count-col-Initial-Access">0 active</span>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Initial Access" data-tech-id="T1078" data-rule="impossible_travel_001" onclick="inspectTechnique('T1078', 'Valid Accounts (Geo/Travel)', 'Initial Access', 'impossible_travel_001')">
+                        <div>
+                            <div class="mitre-cell-tech">T1078</div>
+                            <div class="mitre-cell-name">Valid Accounts</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Initial-Access-T1078">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Initial Access" data-tech-id="T1190" onclick="inspectTechnique('T1190', 'Exploit Public-Facing App', 'Initial Access')">
+                        <div>
+                            <div class="mitre-cell-tech">T1190</div>
+                            <div class="mitre-cell-name">Exploit Public App</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Initial-Access-T1190">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Initial Access" data-tech-id="T1566" onclick="inspectTechnique('T1566', 'Phishing', 'Initial Access')">
+                        <div>
+                            <div class="mitre-cell-tech">T1566</div>
+                            <div class="mitre-cell-name">Phishing</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Initial-Access-T1566">0 Hits</div>
+                    </div>
+                </div>
+
+                <!-- COL 2: Execution -->
+                <div class="mitre-col">
+                    <div class="mitre-col-title">
+                        <span>2. Execution</span>
+                        <span class="mitre-col-count" id="count-col-Execution">0 active</span>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Execution" data-tech-id="T1059" onclick="inspectTechnique('T1059', 'Command & Scripting Interpreter', 'Execution')">
+                        <div>
+                            <div class="mitre-cell-tech">T1059</div>
+                            <div class="mitre-cell-name">Command & Scripting</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Execution-T1059">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Execution" data-tech-id="T1204" onclick="inspectTechnique('T1204', 'User Execution', 'Execution')">
+                        <div>
+                            <div class="mitre-cell-tech">T1204</div>
+                            <div class="mitre-cell-name">User Execution</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Execution-T1204">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Execution" data-tech-id="T1047" onclick="inspectTechnique('T1047', 'WMI Execution', 'Execution')">
+                        <div>
+                            <div class="mitre-cell-tech">T1047</div>
+                            <div class="mitre-cell-name">WMI</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Execution-T1047">0 Hits</div>
+                    </div>
+                </div>
+
+                <!-- COL 3: Persistence -->
+                <div class="mitre-col">
+                    <div class="mitre-col-title">
+                        <span>3. Persistence</span>
+                        <span class="mitre-col-count" id="count-col-Persistence">0 active</span>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Persistence" data-tech-id="T1078.001" data-rule="dormant_account_001" onclick="inspectTechnique('T1078.001', 'Valid Accounts: Default/Dormant Accounts', 'Persistence', 'dormant_account_001')">
+                        <div>
+                            <div class="mitre-cell-tech">T1078.001</div>
+                            <div class="mitre-cell-name">Default / Dormant Accts</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Persistence-T1078.001">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Persistence" data-tech-id="T1136" onclick="inspectTechnique('T1136', 'Create Account', 'Persistence')">
+                        <div>
+                            <div class="mitre-cell-tech">T1136</div>
+                            <div class="mitre-cell-name">Create Account</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Persistence-T1136">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Persistence" data-tech-id="T1547" onclick="inspectTechnique('T1547', 'Boot or Logon Autostart', 'Persistence')">
+                        <div>
+                            <div class="mitre-cell-tech">T1547</div>
+                            <div class="mitre-cell-name">Autostart Execution</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Persistence-T1547">0 Hits</div>
+                    </div>
+                </div>
+
+                <!-- COL 4: Privilege Escalation -->
+                <div class="mitre-col">
+                    <div class="mitre-col-title">
+                        <span>4. Priv Escalation</span>
+                        <span class="mitre-col-count" id="count-col-Privilege-Escalation">0 active</span>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Privilege Escalation" data-tech-id="T1068" data-rule="priv_esc_001" onclick="inspectTechnique('T1068', 'Exploitation for Privilege Escalation', 'Privilege Escalation', 'priv_esc_001')">
+                        <div>
+                            <div class="mitre-cell-tech">T1068</div>
+                            <div class="mitre-cell-name">Privilege Exploitation</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Privilege-Escalation-T1068">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Privilege Escalation" data-tech-id="T1548" onclick="inspectTechnique('T1548', 'Abuse Elevation Control Mechanism', 'Privilege Escalation')">
+                        <div>
+                            <div class="mitre-cell-tech">T1548</div>
+                            <div class="mitre-cell-name">Abuse Elevation Control</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Privilege-Escalation-T1548">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Privilege Escalation" data-tech-id="T1055" onclick="inspectTechnique('T1055', 'Process Injection', 'Privilege Escalation')">
+                        <div>
+                            <div class="mitre-cell-tech">T1055</div>
+                            <div class="mitre-cell-name">Process Injection</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Privilege-Escalation-T1055">0 Hits</div>
+                    </div>
+                </div>
+
+                <!-- COL 5: Defense Evasion -->
+                <div class="mitre-col">
+                    <div class="mitre-col-title">
+                        <span>5. Defense Evasion</span>
+                        <span class="mitre-col-count" id="count-col-Defense-Evasion">0 active</span>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Defense Evasion" data-tech-id="T1078" data-rule="off_hours_001" onclick="inspectTechnique('T1078', 'Valid Accounts: Off-Hours Access', 'Defense Evasion', 'off_hours_001')">
+                        <div>
+                            <div class="mitre-cell-tech">T1078</div>
+                            <div class="mitre-cell-name">Valid Accts (Off-Hours)</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Defense-Evasion-T1078">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Defense Evasion" data-tech-id="T1070" onclick="inspectTechnique('T1070', 'Indicator Removal on Host', 'Defense Evasion')">
+                        <div>
+                            <div class="mitre-cell-tech">T1070</div>
+                            <div class="mitre-cell-name">Indicator Removal</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Defense-Evasion-T1070">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Defense Evasion" data-tech-id="T1562" onclick="inspectTechnique('T1562', 'Impair Defenses', 'Defense Evasion')">
+                        <div>
+                            <div class="mitre-cell-tech">T1562</div>
+                            <div class="mitre-cell-name">Impair Defenses</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Defense-Evasion-T1562">0 Hits</div>
+                    </div>
+                </div>
+
+                <!-- COL 6: Credential Access -->
+                <div class="mitre-col">
+                    <div class="mitre-col-title">
+                        <span>6. Credential Access</span>
+                        <span class="mitre-col-count" id="count-col-Credential-Access">0 active</span>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Credential Access" data-tech-id="T1110" data-rule="brute_force_001" onclick="inspectTechnique('T1110', 'Brute Force / Password Guessing', 'Credential Access', 'brute_force_001')">
+                        <div>
+                            <div class="mitre-cell-tech">T1110</div>
+                            <div class="mitre-cell-name">Brute Force Login</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Credential-Access-T1110">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Credential Access" data-tech-id="T1003" onclick="inspectTechnique('T1003', 'OS Credential Dumping', 'Credential Access')">
+                        <div>
+                            <div class="mitre-cell-tech">T1003</div>
+                            <div class="mitre-cell-name">Credential Dumping</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Credential-Access-T1003">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Credential Access" data-tech-id="T1555" onclick="inspectTechnique('T1555', 'Credentials from Password Stores', 'Credential Access')">
+                        <div>
+                            <div class="mitre-cell-tech">T1555</div>
+                            <div class="mitre-cell-name">Password Stores</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Credential-Access-T1555">0 Hits</div>
+                    </div>
+                </div>
+
+                <!-- COL 7: Discovery -->
+                <div class="mitre-col">
+                    <div class="mitre-col-title">
+                        <span>7. Discovery</span>
+                        <span class="mitre-col-count" id="count-col-Discovery">0 active</span>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Discovery" data-tech-id="T1087" data-rule="recon_001" onclick="inspectTechnique('T1087', 'Account Discovery: User Recon / Spray', 'Discovery', 'recon_001')">
+                        <div>
+                            <div class="mitre-cell-tech">T1087</div>
+                            <div class="mitre-cell-name">Account Discovery</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Discovery-T1087">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Discovery" data-tech-id="T1082" onclick="inspectTechnique('T1082', 'System Information Discovery', 'Discovery')">
+                        <div>
+                            <div class="mitre-cell-tech">T1082</div>
+                            <div class="mitre-cell-name">System Info Discovery</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Discovery-T1082">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Discovery" data-tech-id="T1046" onclick="inspectTechnique('T1046', 'Network Service Discovery', 'Discovery')">
+                        <div>
+                            <div class="mitre-cell-tech">T1046</div>
+                            <div class="mitre-cell-name">Network Service Discovery</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Discovery-T1046">0 Hits</div>
+                    </div>
+                </div>
+
+                <!-- COL 8: Exfiltration -->
+                <div class="mitre-col">
+                    <div class="mitre-col-title">
+                        <span>8. Exfiltration</span>
+                        <span class="mitre-col-count" id="count-col-Exfiltration">0 active</span>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Exfiltration" data-tech-id="T1567" data-rule="exfil_burst_001" onclick="inspectTechnique('T1567', 'Exfiltration Over Web Service: Burst Export', 'Exfiltration', 'exfil_burst_001')">
+                        <div>
+                            <div class="mitre-cell-tech">T1567</div>
+                            <div class="mitre-cell-name">Exfil Over Web Service</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Exfiltration-T1567">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Exfiltration" data-tech-id="T1041" onclick="inspectTechnique('T1041', 'Exfiltration Over C2 Channel', 'Exfiltration')">
+                        <div>
+                            <div class="mitre-cell-tech">T1041</div>
+                            <div class="mitre-cell-name">Exfil Over C2</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Exfiltration-T1041">0 Hits</div>
+                    </div>
+                    <div class="mitre-cell heat-0" data-tactic="Exfiltration" data-tech-id="T1048" onclick="inspectTechnique('T1048', 'Exfil Over Alt Protocol', 'Exfiltration')">
+                        <div>
+                            <div class="mitre-cell-tech">T1048</div>
+                            <div class="mitre-cell-name">Exfil Over Alt Protocol</div>
+                        </div>
+                        <div class="mitre-cell-badge" id="badge-Exfiltration-T1048">0 Hits</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TECHNIQUE INSPECTOR DRAWER -->
+            <div id="mitreInspector">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+                    <div>
+                        <div style="font-size:0.72rem; text-transform:uppercase; font-weight:700; color:var(--primary);" id="inspTacticBadge">TACTIC</div>
+                        <h3 style="font-size:1.05rem; font-weight:700; color:var(--text); margin-top:2px;" id="inspTitle">Technique Details</h3>
+                    </div>
+                    <button onclick="document.getElementById('mitreInspector').style.display='none'" style="background:none; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer;">✕</button>
+                </div>
+                <div id="inspContent" style="font-size:0.85rem; color:var(--text); line-height:1.6;"></div>
             </div>
         </div>
     </div>
@@ -474,9 +1603,8 @@
 
     async function doUpload() {
         const fileInput = document.getElementById('logFileInput');
-        if (!fileInput.files.length) { setStatus('⚠ Please select a CSV file first.', 'err'); return null; }
+        if (!fileInput.files.length) { setStatus('⚠ Please select a log file first.', 'err'); return null; }
         setStatus('⏳ Uploading logs...', 'busy');
-        document.getElementById('btnUpload').disabled = true;
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
         try {
@@ -491,7 +1619,6 @@
                 return null;
             }
         } catch(e) { setStatus('❌ Network error during upload.', 'err'); return null; }
-        finally { document.getElementById('btnUpload').disabled = false; }
     }
 
     async function doDetect() {
@@ -520,11 +1647,54 @@
     }
 
     async function runPipeline() {
-        const uploaded = await doUpload();
-        if (!uploaded) return;
-        const detected = await doDetect();
-        if (!detected) return;
-        await doCorrelate();
+        const btn = document.getElementById('btnUpload');
+        btn.disabled = true;
+        try {
+            const uploaded = await doUpload();
+            if (!uploaded) return;
+            const detected = await doDetect();
+            if (!detected) return;
+            await doCorrelate();
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function resetSystem() {
+        if (!confirm("Are you sure you want to reset all data?\\n\\nThis will permanently clean all logs, alerts, incidents, remediation tasks, and ML baselines so you can upload a new log file.")) {
+            return;
+        }
+
+        const btnReset = document.getElementById('btnReset');
+        const btnUpload = document.getElementById('btnUpload');
+        if (btnReset) btnReset.disabled = true;
+        if (btnUpload) btnUpload.disabled = true;
+        setStatus('⏳ Cleaning all logs and resetting database…', 'busy');
+
+        try {
+            const res = await fetch('/api/system/reset', { method: 'POST' });
+            const data = await res.json();
+            if (res.ok) {
+                // Clear the file picker input
+                const fileInput = document.getElementById('logFileInput');
+                if (fileInput) fileInput.value = '';
+
+                setStatus('✅ All data cleared! Reloading dashboard…', 'ok');
+                toast('✅ Database reset! All logs and incidents cleaned.');
+                setTimeout(() => window.location.reload(), 700);
+            } else {
+                const msg = data.detail || 'Reset failed.';
+                setStatus('❌ ' + msg, 'err');
+                toast('❌ ' + msg, true);
+                if (btnReset) btnReset.disabled = false;
+                if (btnUpload) btnUpload.disabled = false;
+            }
+        } catch(e) {
+            setStatus('❌ Network error during reset: ' + e.message, 'err');
+            toast('❌ Reset failed: ' + e.message, true);
+            if (btnReset) btnReset.disabled = false;
+            if (btnUpload) btnUpload.disabled = false;
+        }
     }
 
     // ── CHART ──────────────────────────────────────────────────────
@@ -618,53 +1788,118 @@
             <div class="modal-meta">
                 <span class="risk-badge ${riskClass}" style="margin-right:8px">● ${escHtml(d.risk_level)}</span>
                 <span class="status-badge ${statusClass}" id="currentStatusBadge">${escHtml(d.status)}</span>
-                &nbsp;·&nbsp; Score: <strong>${d.score}</strong>
+                &nbsp;·&nbsp; Score: <strong>${d.score}</strong><span style="color:var(--muted); font-size:0.85rem">/100</span>
                 &nbsp;·&nbsp; ${(d.contributing_alert_ids || []).length} alert(s) correlated
             </div>
 
-            <!-- STATUS ACTIONS -->
-            <div class="sec-head">Update Status</div>
-            <div class="status-actions">
-                <button class="status-btn ${d.status==='open' ? 'active-open' : ''}"
-                    onclick="updateStatus(${d.id}, 'open', this)">Open</button>
-                <button class="status-btn ${d.status==='reviewing' ? 'active-reviewing' : ''}"
-                    onclick="updateStatus(${d.id}, 'reviewing', this)">Reviewing</button>
-                <button class="status-btn ${d.status==='resolved' ? 'active-resolved' : ''}"
-                    onclick="updateStatus(${d.id}, 'resolved', this)">Resolved</button>
-                <button class="status-btn ${d.status==='false_positive' ? 'active-false_positive' : ''}"
-                    onclick="updateStatus(${d.id}, 'false_positive', this)">False Positive</button>
+            <!-- MODAL TABS -->
+            <div class="modal-tabs">
+                <button class="modal-tab active" id="tabBtnOverview" onclick="switchModalTab('overview')">📋 Overview</button>
+                <button class="modal-tab" id="tabBtnGraph" onclick="switchModalTab('graph', ${d.id})">🕸️ Attack Graph</button>
+                <button class="modal-tab" id="tabBtnStory" onclick="switchModalTab('story', ${d.id})">📖 Attack Story</button>
             </div>
 
-            <!-- RECOMMENDED ACTIONS -->
-            <div class="sec-head">Recommended Actions</div>
-            ${actHTML}
+            <!-- TAB 1: OVERVIEW -->
+            <div id="tabPaneOverview">
+                <!-- STATUS ACTIONS -->
+                <div class="sec-head">Update Status</div>
+                <div class="status-actions">
+                    <button class="status-btn ${d.status==='open' ? 'active-open' : ''}"
+                        onclick="updateStatus(${d.id}, 'open', this)">Open</button>
+                    <button class="status-btn ${d.status==='reviewing' ? 'active-reviewing' : ''}"
+                        onclick="updateStatus(${d.id}, 'reviewing', this)">Reviewing</button>
+                    <button class="status-btn ${d.status==='resolved' ? 'active-resolved' : ''}"
+                        onclick="updateStatus(${d.id}, 'resolved', this)">Resolved</button>
+                    <button class="status-btn ${d.status==='false_positive' ? 'active-false_positive' : ''}"
+                        onclick="updateStatus(${d.id}, 'false_positive', this)">False Positive</button>
+                </div>
 
-            <!-- EVIDENCE -->
-            <div class="sec-head">Evidence (Raw Alert Signals)</div>
-            ${evHTML}
+                <!-- RECOMMENDED ACTIONS -->
+                <div class="sec-head">Recommended Actions</div>
+                ${actHTML}
 
-            <!-- ML SCORE -->
-            <div class="sec-head">ML Anomaly Score</div>
-            ${mlHTML}
+                <!-- EVIDENCE -->
+                <div class="sec-head">Evidence (Raw Alert Signals)</div>
+                ${evHTML}
 
-            <!-- AI NARRATIVE -->
-            <div class="sec-head">AI Narrative</div>
-            <button class="btn btn-upload" id="btnNarrative" onclick="fetchNarrative(${d.id})"
-                style="font-size:0.8rem; padding:0.4rem 1rem;">✦ Generate AI Narrative</button>
-            <div id="narrativeBox" style="display:none" class="narrative-box"></div>
-            <div id="narrativeLoading" style="display:none; color:var(--muted); font-size:0.85rem; margin-top:0.5rem;">
-                Clustering logs and querying LLM… please wait.
+                <!-- ML SCORE -->
+                <div class="sec-head">ML Anomaly Score</div>
+                ${mlHTML}
+
+                <!-- AI NARRATIVE -->
+                <div class="sec-head">AI Narrative</div>
+                <button class="btn btn-upload" id="btnNarrative" onclick="fetchNarrative(${d.id})"
+                    style="font-size:0.8rem; padding:0.4rem 1rem;">✦ Generate AI Narrative</button>
+                <div id="narrativeBox" style="display:none" class="narrative-box"></div>
+                <div id="narrativeLoading" style="display:none; color:var(--muted); font-size:0.85rem; margin-top:0.5rem;">
+                    Clustering logs and querying LLM… please wait.
+                </div>
+
+                <!-- DOWNLOAD REPORT -->
+                <div class="sec-head">Download Report</div>
+                <div class="report-btns">
+                    <a href="/api/reports/${d.id}?format=md" target="_blank" class="btn btn-neutral" style="text-decoration:none;">
+                        ↓ Markdown Report
+                    </a>
+                    <a href="/api/reports/${d.id}?format=pdf" target="_blank" class="btn btn-neutral" style="text-decoration:none;">
+                        ↓ PDF Report
+                    </a>
+                </div>
             </div>
 
-            <!-- DOWNLOAD REPORT -->
-            <div class="sec-head">Download Report</div>
-            <div class="report-btns">
-                <a href="/api/reports/${d.id}?format=md" target="_blank" class="btn btn-neutral" style="text-decoration:none;">
-                    ↓ Markdown Report
-                </a>
-                <a href="/api/reports/${d.id}?format=pdf" target="_blank" class="btn btn-neutral" style="text-decoration:none;">
-                    ↓ PDF Report
-                </a>
+            <!-- TAB 2: ATTACK GRAPH -->
+            <div id="tabPaneGraph" style="display:none;">
+                <div class="graph-stats" id="graphStats">
+                    <div class="graph-stat-pill">Loading graph entities…</div>
+                </div>
+                <div class="graph-container" id="graphContainer">
+                    <div class="graph-controls">
+                        <button onclick="zoomGraph(1.2)" title="Zoom In">+</button>
+                        <button onclick="zoomGraph(0.8)" title="Zoom Out">−</button>
+                        <button onclick="resetGraphZoom()" title="Reset View">⟲</button>
+                    </div>
+                    <div id="graphInspector" style="display:none; position:absolute; bottom:12px; left:12px; max-width:340px; background:rgba(22,26,38,0.95); border:1px solid var(--border); border-radius:8px; padding:12px 14px; font-size:0.82rem; z-index:20; backdrop-filter:blur(8px); box-shadow:0 8px 24px rgba(0,0,0,0.6);"></div>
+                    <svg id="attackGraphSvg" width="100%" height="100%" viewBox="0 0 960 540" style="cursor:grab;">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="16" refY="3" orient="auto">
+                                <polygon points="0 0, 8 3, 0 6" fill="#64748b" />
+                            </marker>
+                        </defs>
+                        <g id="graphGroup"></g>
+                    </svg>
+                </div>
+                <div class="graph-legend">
+                    <span><span class="legend-dot" style="background:#818cf8;"></span>User</span>
+                    <span><span class="legend-dot" style="background:#f43f5e;"></span>Incident</span>
+                    <span><span class="legend-dot" style="background:#38bdf8;"></span>IP Address</span>
+                    <span><span class="legend-dot" style="background:#ef4444;"></span>Security Rule</span>
+                    <span><span class="legend-dot" style="background:#a855f7;"></span>MITRE ATT&CK</span>
+                    <span><span class="legend-dot" style="background:#22c55e;"></span>Log Action</span>
+                    <span><span class="legend-dot" style="background:#10b981;"></span>Remediation</span>
+                </div>
+            </div>
+
+            <!-- TAB 3: ATTACK STORY -->
+            <div id="tabPaneStory" style="display:none;">
+                <div id="storyLoading" style="padding:2rem; text-align:center; color:var(--muted); font-size:0.9rem;">Loading attack story…</div>
+                <div id="storyContent" style="display:none;">
+                    <div id="storyHeadline" style="
+                        font-size:1rem; font-weight:700; color:var(--text);
+                        margin-bottom:1rem; padding:1rem 1.2rem;
+                        background:linear-gradient(135deg,rgba(99,102,241,0.18),rgba(168,85,247,0.12));
+                        border:1px solid rgba(99,102,241,0.35); border-radius:10px;
+                        line-height:1.5;
+                    "></div>
+                    <div class="sec-head">Kill-Chain Stages</div>
+                    <div id="storyStages" style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1rem;"></div>
+                    <div class="sec-head">Full Narrative</div>
+                    <div id="storyNarrative" style="
+                        background:var(--surface2); border:1px solid var(--border);
+                        border-radius:10px; padding:1rem 1.2rem;
+                        font-size:0.87rem; line-height:1.75; color:var(--text);
+                    "></div>
+                </div>
+                <div id="storyError" style="display:none; color:var(--red); padding:1rem; font-size:0.9rem;"></div>
             </div>
         `;
     }
@@ -711,7 +1946,7 @@
             } else if (data.detail) {
                 box.textContent = '⚠ ' + data.detail;
             } else {
-                box.textContent = 'No narrative returned. Make sure OPENAI_API_KEY is set in your .env file.';
+                box.textContent = 'No narrative returned. Make sure GEMINI_API_KEY is set in your .env file.';
             }
         } catch(e) {
             document.getElementById('narrativeLoading').style.display = 'none';
@@ -720,9 +1955,416 @@
         }
     }
 
+    // ── ATTACK GRAPH CONTROLLER (Phase 11) ───────────────────────────
+    let graphData = null;
+    let graphZoom = 1.0;
+    let graphPanX = 0;
+    let graphPanY = 0;
+    let draggedNode = null;
+    let dragOffset = { x: 0, y: 0 };
+
+    const TACTIC_COLORS = {
+        'Credential Access': '#ef4444',
+        'Privilege Escalation': '#f97316',
+        'Discovery': '#eab308',
+        'Defense Evasion': '#8b5cf6',
+        'Initial Access': '#3b82f6',
+        'Exfiltration': '#ec4899',
+        'Persistence': '#14b8a6',
+        'Unclassified': '#64748b'
+    };
+
+    function switchModalTab(tab, incidentId) {
+        const btnOverview = document.getElementById('tabBtnOverview');
+        const btnGraph    = document.getElementById('tabBtnGraph');
+        const btnStory    = document.getElementById('tabBtnStory');
+        const paneOverview = document.getElementById('tabPaneOverview');
+        const paneGraph    = document.getElementById('tabPaneGraph');
+        const paneStory    = document.getElementById('tabPaneStory');
+
+        // Guard: panes may not exist if modal hasn't rendered yet
+        if (!btnOverview || !paneOverview) return;
+
+        // Deactivate all
+        [btnOverview, btnGraph, btnStory].forEach(b => { if(b) b.classList.remove('active'); });
+        [paneOverview, paneGraph, paneStory].forEach(p => { if(p) p.style.display = 'none'; });
+
+        const targetId = incidentId || currentIncidentId;
+
+        if (tab === 'graph') {
+            if (btnGraph) btnGraph.classList.add('active');
+            if (paneGraph) paneGraph.style.display = 'block';
+            if (targetId) loadAndRenderAttackGraph(targetId);
+        } else if (tab === 'story') {
+            if (btnStory) btnStory.classList.add('active');
+            if (paneStory) paneStory.style.display = 'block';
+            if (targetId) loadAndRenderStory(targetId);
+        } else {
+            // default: overview
+            btnOverview.classList.add('active');
+            paneOverview.style.display = 'block';
+        }
+    }
+
+    let _storyLoadedFor = null;
+
+    async function loadAndRenderStory(id) {
+        const numId = parseInt(id, 10);
+        const storyLoading = document.getElementById('storyLoading');
+        const storyContent = document.getElementById('storyContent');
+        const storyError   = document.getElementById('storyError');
+        if (!storyLoading) return;
+
+        // Guard: already loaded for this incident — just show it
+        if (_storyLoadedFor === numId && storyContent && storyContent.style.display !== 'none') return;
+
+        storyLoading.style.display = 'block';
+        storyLoading.textContent = '⏳ Reconstructing attack story…';
+        if (storyContent) storyContent.style.display = 'none';
+        if (storyError) storyError.style.display = 'none';
+
+        // 20-second abort timeout so the browser never hangs forever
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+        try {
+            const res = await fetch(`/api/incidents/${numId}/story`, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (!res.ok) throw new Error('Server returned HTTP ' + res.status);
+            const data = await res.json();
+
+            _storyLoadedFor = numId;
+            storyLoading.style.display = 'none';
+
+            // Headline
+            const headlineEl = document.getElementById('storyHeadline');
+            if (headlineEl) headlineEl.textContent = data.headline || 'No headline available.';
+
+            // Kill-chain stages
+            const stagesEl = document.getElementById('storyStages');
+            if (stagesEl) {
+                const stages = data.stages || [];
+                if (stages.length === 0) {
+                    stagesEl.innerHTML = '<p style="color:var(--muted);font-size:0.85rem">No kill-chain stages detected.</p>';
+                } else {
+                    stagesEl.innerHTML = stages.map((s) => {
+                        const color = TACTIC_COLORS[s.tactic] || '#64748b';
+                        return `
+                            <div style="
+                                display:flex; align-items:flex-start; gap:1rem;
+                                padding:0.85rem 1rem;
+                                background:var(--surface2); border:1px solid var(--border);
+                                border-left:4px solid ${color}; border-radius:8px;
+                            ">
+                                <div style="
+                                    min-width:28px; height:28px; border-radius:50%;
+                                    background:${color}22; border:2px solid ${color};
+                                    color:${color}; font-size:0.8rem; font-weight:700;
+                                    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+                                ">${s.order}</div>
+                                <div style="flex:1;">
+                                    <div style="font-size:0.75rem; font-weight:600; color:${color}; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">
+                                        Stage ${s.order} &mdash; ${escHtml(s.tactic)}
+                                        <span style="color:var(--muted); font-weight:400; text-transform:none; letter-spacing:0; margin-left:6px;">${escHtml(s.time)}</span>
+                                    </div>
+                                    <div style="font-size:0.875rem; color:var(--text); line-height:1.6;">${escHtml(s.summary)}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            // Full narrative
+            const narrativeEl = document.getElementById('storyNarrative');
+            if (narrativeEl) narrativeEl.textContent = data.narrative || 'No narrative available.';
+
+            if (storyContent) storyContent.style.display = 'block';
+
+        } catch(e) {
+            clearTimeout(timeoutId);
+            storyLoading.style.display = 'none';
+            if (storyError) {
+                const isTimeout = e.name === 'AbortError';
+                storyError.innerHTML = isTimeout
+                    ? '⏱ Story generation timed out (AI is busy). <button onclick="_storyLoadedFor=null;loadAndRenderStory(' + numId + ')" style="background:var(--primary);color:white;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;margin-left:8px;">Retry</button>'
+                    : '❌ Failed to load attack story: ' + escHtml(e.message);
+                storyError.style.display = 'block';
+            }
+        }
+    }
+
+    async function loadAndRenderAttackGraph(id) {
+        const statsEl = document.getElementById('graphStats');
+        const group = document.getElementById('graphGroup');
+        if (!statsEl || !group) return;
+
+        statsEl.innerHTML = '<div class="graph-stat-pill">Loading graph entities…</div>';
+        group.innerHTML = '';
+
+        try {
+            const res = await fetch(`/api/incidents/${id}/graph`);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            graphData = await res.json();
+            renderAttackGraph(graphData);
+        } catch (e) {
+            statsEl.innerHTML = `<div class="graph-stat-pill" style="color:var(--red)">Failed to load attack graph: ${e.message}</div>`;
+        }
+    }
+
+    let isPanning = false;
+    let panStart = { x: 0, y: 0 };
+
+    function renderAttackGraph(data) {
+        const statsEl = document.getElementById('graphStats');
+        const svg = document.getElementById('attackGraphSvg');
+        const group = document.getElementById('graphGroup');
+        const inspector = document.getElementById('graphInspector');
+        if (!data || !group) return;
+        if (inspector) inspector.style.display = 'none';
+
+        // Render Stats
+        const stats = data.stats || {};
+        statsEl.innerHTML = `
+            <div class="graph-stat-pill">Entities: <strong>${stats.node_count || data.nodes.length}</strong></div>
+            <div class="graph-stat-pill">Relations: <strong>${stats.edge_count || data.edges.length}</strong></div>
+            <div class="graph-stat-pill">Alerts: <strong>${stats.alert_count || 0}</strong></div>
+            <div class="graph-stat-pill">Log Events: <strong>${stats.log_count || 0}</strong></div>
+            <div class="graph-stat-pill">Actions: <strong>${stats.action_count || 0}</strong></div>
+        `;
+
+        const width = 960;
+        const height = 540;
+        const nodes = data.nodes || [];
+        const edges = data.edges || [];
+
+        // Initial Layout Positioning
+        const nodeMap = {};
+        const categorized = { user: [], incident: [], ip: [], rule: [], mitre: [], event: [], action: [] };
+
+        nodes.forEach(n => {
+            nodeMap[n.id] = n;
+            const t = categorized[n.type] ? n.type : 'rule';
+            categorized[t].push(n);
+        });
+
+        // 1. IPs on Column 1 (Left: x = 90)
+        const ipCount = categorized.ip.length;
+        const ipStep = (height - 80) / Math.max(1, ipCount + 1);
+        categorized.ip.forEach((n, i) => { n.x = 90; n.y = 40 + ipStep * (i + 1); });
+
+        // 2. Actions on Column 2 (x = 240)
+        const evCount = categorized.event.length;
+        const evStep = (height - 80) / Math.max(1, evCount + 1);
+        categorized.event.forEach((n, i) => { n.x = 240; n.y = 40 + evStep * (i + 1); });
+
+        // 3. User & Incident central on Column 3 (x = 420)
+        categorized.user.forEach((n, i) => { n.x = 420; n.y = 190 + i * 50; });
+        categorized.incident.forEach((n, i) => { n.x = 420; n.y = 290 + i * 50; });
+
+        // 4. Remediation Actions below central (x = 420, spread)
+        const actCount = categorized.action.length;
+        if (actCount > 0) {
+            const actStep = 320 / Math.max(1, actCount + 1);
+            categorized.action.forEach((n, i) => { n.x = 260 + actStep * (i + 1); n.y = 460; });
+        }
+
+        // 5. Rules on Column 4 (x = 640)
+        const ruleCount = categorized.rule.length;
+        const ruleStep = (height - 80) / Math.max(1, ruleCount + 1);
+        categorized.rule.forEach((n, i) => { n.x = 640; n.y = 40 + ruleStep * (i + 1); });
+
+        // 6. MITRE techniques on Column 5 (Far Right: x = 850)
+        const mitreCount = categorized.mitre.length;
+        const mitreStep = (height - 80) / Math.max(1, mitreCount + 1);
+        categorized.mitre.forEach((n, i) => { n.x = 850; n.y = 40 + mitreStep * (i + 1); });
+
+        // Build SVG Elements
+        let edgesHtml = '';
+        edges.forEach((e, idx) => {
+            const s = nodeMap[e.source];
+            const t = nodeMap[e.target];
+            if (!s || !t) return;
+            const midX = (s.x + t.x) / 2;
+            const midY = (s.y + t.y) / 2;
+            edgesHtml += `
+                <g class="graph-edge-wrap" id="edge-${idx}">
+                    <line id="line-${idx}" class="graph-edge" x1="${s.x}" y1="${s.y}" x2="${t.x}" y2="${t.y}" marker-end="url(#arrowhead)"></line>
+                    <text id="edgelabel-${idx}" class="graph-edge-label" x="${midX}" y="${midY - 4}" text-anchor="middle">${escHtml(e.label || '')}</text>
+                </g>
+            `;
+        });
+
+        let nodesHtml = '';
+        nodes.forEach((n, idx) => {
+            const r = n.type === 'incident' ? 22 : n.type === 'user' ? 20 : 15;
+            nodesHtml += `
+                <g class="graph-node" id="node-g-${idx}" transform="translate(${n.x},${n.y})"
+                   onmousedown="startNodeDrag(event, '${n.id}')"
+                   onclick="showNodeInspector('${n.id}')"
+                   style="cursor:grab;">
+                    <circle r="${r}" fill="${n.color}" fill-opacity="0.28" stroke="${n.color}" stroke-width="2.5"></circle>
+                    <text y="${r + 14}" text-anchor="middle">${escHtml(n.label)}</text>
+                    <title>${escHtml(n.label)}&#10;Type: ${n.type}</title>
+                </g>
+            `;
+        });
+
+        group.innerHTML = edgesHtml + nodesHtml;
+        resetGraphZoom();
+        setupSvgDrag(svg);
+    }
+
+    function showNodeInspector(nodeId) {
+        if (!graphData) return;
+        const node = graphData.nodes.find(n => n.id === nodeId);
+        const el = document.getElementById('graphInspector');
+        if (!node || !el) return;
+
+        const d = node.details || {};
+        let detailsHtml = '';
+        if (node.type === 'user') {
+            detailsHtml = `<div><strong>Risk:</strong> ${d.risk_level || 'N/A'} (Score: ${d.score || 0})</div>`;
+        } else if (node.type === 'incident') {
+            detailsHtml = `<div><strong>Incident #${d.id}</strong>: Score ${d.score}, Status: ${d.status}</div>`;
+        } else if (node.type === 'rule') {
+            const ev = Array.isArray(d.evidence) ? d.evidence[0] : (d.evidence || '');
+            detailsHtml = `
+                <div><strong>Severity:</strong> ${d.severity || 'Medium'} (${d.points || 0} pts)</div>
+                ${d.count > 1 ? `<div><strong>Trigger Count:</strong> ${d.count}x</div>` : ''}
+                <div style="margin-top:4px; font-size:0.75rem; color:var(--muted); max-height:80px; overflow-y:auto;">${escHtml(ev)}</div>
+            `;
+        } else if (node.type === 'mitre') {
+            detailsHtml = `<div><strong>Tactic:</strong> ${d.tactic || 'N/A'}</div><div><strong>Technique:</strong> ${d.technique_id || 'None'} &mdash; ${escHtml(d.technique_name || '')}</div>`;
+        } else if (node.type === 'action') {
+            detailsHtml = `<div><strong>Priority:</strong> ${d.priority}</div><div>${escHtml(d.action)}</div>`;
+        } else if (node.type === 'ip') {
+            detailsHtml = `<div><strong>Source IP:</strong> ${d.ip}</div>`;
+        } else {
+            detailsHtml = `<div><strong>Event:</strong> ${d.event}</div>`;
+        }
+
+        el.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="font-weight:700; color:${node.color}; text-transform:uppercase; font-size:0.72rem; letter-spacing:0.06em;">${node.type} entity</span>
+                <button onclick="document.getElementById('graphInspector').style.display='none'" style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:0.85rem;">✕</button>
+            </div>
+            <div style="font-weight:600; color:var(--text); margin-bottom:4px;">${escHtml(node.label)}</div>
+            ${detailsHtml}
+        `;
+        el.style.display = 'block';
+    }
+
+    function setupSvgDrag(svg) {
+        // Canvas Drag to Pan
+        svg.onmousedown = function(evt) {
+            if (evt.target === svg || evt.target.tagName === 'svg' || evt.target.id === 'graphGroup') {
+                isPanning = true;
+                panStart = { x: evt.clientX - graphPanX, y: evt.clientY - graphPanY };
+                svg.style.cursor = 'grabbing';
+            }
+        };
+
+        svg.onmousemove = function(evt) {
+            if (isPanning) {
+                graphPanX = evt.clientX - panStart.x;
+                graphPanY = evt.clientY - panStart.y;
+                applyGraphTransform();
+            } else if (draggedNode && graphData) {
+                const rect = svg.getBoundingClientRect();
+                const mouseX = (evt.clientX - rect.left - graphPanX) / graphZoom;
+                const mouseY = (evt.clientY - rect.top - graphPanY) / graphZoom;
+                draggedNode.x = mouseX - dragOffset.x;
+                draggedNode.y = mouseY - dragOffset.y;
+                updateGraphPositions();
+            }
+        };
+
+        svg.onmouseup = function() {
+            isPanning = false;
+            draggedNode = null;
+            svg.style.cursor = 'grab';
+        };
+
+        svg.onmouseleave = function() {
+            isPanning = false;
+            draggedNode = null;
+            svg.style.cursor = 'grab';
+        };
+
+        svg.onwheel = function(evt) {
+            evt.preventDefault();
+            const factor = evt.deltaY < 0 ? 1.12 : 0.88;
+            zoomGraph(factor);
+        };
+    }
+
+    function startNodeDrag(evt, nodeId) {
+        if (!evt) return;
+        evt.stopPropagation();
+        if (!graphData) return;
+        const node = graphData.nodes.find(n => n.id === nodeId);
+        if (!node) return;
+        draggedNode = node;
+        const svg = document.getElementById('attackGraphSvg');
+        const rect = svg.getBoundingClientRect();
+        const mouseX = (evt.clientX - rect.left - graphPanX) / graphZoom;
+        const mouseY = (evt.clientY - rect.top - graphPanY) / graphZoom;
+        dragOffset = { x: mouseX - node.x, y: mouseY - node.y };
+    }
+
+    function updateGraphPositions() {
+        if (!graphData) return;
+        const nodeMap = {};
+        graphData.nodes.forEach((n, idx) => {
+            nodeMap[n.id] = n;
+            const g = document.getElementById(`node-g-${idx}`);
+            if (g) g.setAttribute('transform', `translate(${n.x},${n.y})`);
+        });
+
+        (graphData.edges || []).forEach((e, idx) => {
+            const s = nodeMap[e.source];
+            const t = nodeMap[e.target];
+            if (!s || !t) return;
+            const line = document.getElementById(`line-${idx}`);
+            const lbl = document.getElementById(`edgelabel-${idx}`);
+            if (line) {
+                line.setAttribute('x1', s.x);
+                line.setAttribute('y1', s.y);
+                line.setAttribute('x2', t.x);
+                line.setAttribute('y2', t.y);
+            }
+            if (lbl) {
+                lbl.setAttribute('x', (s.x + t.x) / 2);
+                lbl.setAttribute('y', (s.y + t.y) / 2 - 4);
+            }
+        });
+    }
+
+    function zoomGraph(factor) {
+        graphZoom *= factor;
+        graphZoom = Math.min(3.5, Math.max(0.35, graphZoom));
+        applyGraphTransform();
+    }
+
+    function resetGraphZoom() {
+        graphZoom = 1.0;
+        graphPanX = 0;
+        graphPanY = 0;
+        applyGraphTransform();
+    }
+
+    function applyGraphTransform() {
+        const group = document.getElementById('graphGroup');
+        if (group) {
+            group.setAttribute('transform', `translate(${graphPanX},${graphPanY}) scale(${graphZoom})`);
+        }
+    }
+
     function closeModal() {
         document.getElementById('overlay').classList.remove('active');
         currentIncidentId = null;
+        _storyLoadedFor = null;
     }
     function maybeClose(e) {
         if (e.target === document.getElementById('overlay')) closeModal();
@@ -732,6 +2374,352 @@
         if (!str) return '';
         return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
+
+    // ── MAIN VIEW CONTROLLER (Incidents vs MITRE Matrix) ──────────────
+    function switchView(view) {
+        const btnInc = document.getElementById('tabBtnIncidentsView');
+        const btnMit = document.getElementById('tabBtnMitreView');
+        const paneInc = document.getElementById('viewIncidentsPane');
+        const paneMit = document.getElementById('viewMitrePane');
+
+        if (!btnInc || !btnMit || !paneInc || !paneMit) return;
+
+        if (view === 'mitre') {
+            btnInc.classList.remove('active');
+            btnMit.classList.add('active');
+            paneInc.style.display = 'none';
+            paneMit.style.display = 'block';
+            loadMitreMatrix();
+        } else {
+            btnMit.classList.remove('active');
+            btnInc.classList.add('active');
+            paneMit.style.display = 'none';
+            paneInc.style.display = 'block';
+        }
+    }
+
+    // ── MITRE ATT&CK HEATMAP MATRIX CONTROLLER ────────────────────────
+    let mitreMatrixData = [];
+    const RULE_DESCRIPTIONS = {
+        'impossible_travel_001': 'Simultaneous authentications from geographically distinct countries within 10 minutes.',
+        'priv_esc_001': 'Unauthorized privilege elevation or execution of elevated administrative commands.',
+        'dormant_account_001': 'Reactivation and authentication using accounts inactive for over 30 days.',
+        'off_hours_001': 'Valid account logins executed outside scheduled operational hours (23:00–06:00).',
+        'brute_force_001': 'Rapid series of 5+ failed authentication attempts from a single source.',
+        'recon_001': 'High-frequency reconnaissance or access-denial spray scanning user endpoints.',
+        'exfil_burst_001': 'Abnormal burst of 100+ export/download events indicating bulk data staging/exfiltration.'
+    };
+
+    async function loadMitreMatrix() {
+        try {
+            const res = await fetch('/api/mitre/matrix');
+            if (!res.ok) return;
+            mitreMatrixData = await res.json();
+
+            let totalActiveCount = 0;
+            const tacticCounts = {};
+
+            // Reset all cells to heat-0 first
+            document.querySelectorAll('.mitre-cell').forEach(cell => {
+                cell.className = 'mitre-cell heat-0';
+                const badge = cell.querySelector('.mitre-cell-badge');
+                if (badge) badge.textContent = '0 Hits';
+            });
+
+            mitreMatrixData.forEach(item => {
+                const tactic = item.tactic;
+                const techId = item.technique_id;
+                const count = item.incident_count || item.count || 0;
+
+                if (count > 0) {
+                    totalActiveCount++;
+                    tacticCounts[tactic] = (tacticCounts[tactic] || 0) + 1;
+                }
+
+                // Match cell by tactic and tech ID
+                if (!techId) return;
+                const cell = document.querySelector(`.mitre-cell[data-tactic="${tactic}"][data-tech-id="${techId}"]`);
+                if (cell) {
+                    const badge = cell.querySelector('.mitre-cell-badge');
+                    cell.classList.remove('heat-0', 'heat-low', 'heat-med', 'heat-high');
+
+                    let heatClass = 'heat-low';
+                    if (count > 10) heatClass = 'heat-high';
+                    else if (count >= 3) heatClass = 'heat-med';
+
+                    cell.classList.add(heatClass);
+                    if (badge) {
+                        badge.textContent = `${count} Incident${count > 1 ? 's' : ''}`;
+                    }
+                    cell.setAttribute('data-count', count);
+                }
+            });
+
+            // Update column header counts
+            ['Initial-Access', 'Execution', 'Persistence', 'Privilege-Escalation', 'Defense-Evasion', 'Credential-Access', 'Discovery', 'Exfiltration'].forEach(tacKey => {
+                const tacName = tacKey.replace(/-/g, ' ');
+                const activeInCol = tacticCounts[tacName] || 0;
+                const el = document.getElementById(`count-col-${tacKey}`);
+                if (el) el.textContent = `${activeInCol} active`;
+            });
+
+            // Update badges
+            const totalBadge = document.getElementById('mitreTotalHitsBadge');
+            if (totalBadge) {
+                totalBadge.textContent = `${totalActiveCount} Active TTP${totalActiveCount !== 1 ? 's' : ''}`;
+                totalBadge.style.background = totalActiveCount > 0 ? '#dc2626' : '#64748b';
+            }
+            const activeBadge = document.getElementById('mitreActiveBadge');
+            if (activeBadge) {
+                activeBadge.textContent = `${totalActiveCount} Active Techniques Detected`;
+            }
+        } catch(e) {
+            console.error('Failed to load MITRE matrix:', e);
+        }
+    }
+
+    function inspectTechnique(techId, techName, tactic, ruleId) {
+        const insp = document.getElementById('mitreInspector');
+        const badge = document.getElementById('inspTacticBadge');
+        const title = document.getElementById('inspTitle');
+        const content = document.getElementById('inspContent');
+        if (!insp || !title || !content) return;
+
+        const matching = mitreMatrixData.find(m => m.technique_id === techId && m.tactic === tactic);
+        const count = matching ? (matching.incident_count || matching.count || 0) : 0;
+        const ruleDesc = RULE_DESCRIPTIONS[ruleId] || 'Monitored under MITRE ATT&CK framework baseline.';
+
+        badge.textContent = `TACTIC: ${tactic} · TECHNIQUE ${techId}`;
+        title.innerHTML = `${escHtml(techName)} <span style="font-size:0.8rem; font-weight:600; padding:2px 8px; border-radius:4px; margin-left:8px; ${count > 0 ? 'background:#dc2626; color:white;' : 'background:#334155; color:#94a3b8;'}">${count} Incident${count !== 1 ? 's' : ''}</span>`;
+
+        content.innerHTML = `
+            <div style="margin-bottom:8px;">
+                <strong>Detection Signal:</strong> ${ruleId ? `<code>${ruleId}</code>` : 'Simulated / Framework Monitored'}
+            </div>
+            <div style="margin-bottom:12px; color:var(--muted);">
+                ${ruleDesc}
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                ${count > 0 ? `
+                    <button class="btn btn-upload" onclick="filterIncidentsByTechnique('${escHtml(techName)}')" style="font-size:0.82rem; padding:0.4rem 1rem;">
+                        🔍 View Correlated Incidents in Queue
+                    </button>
+                ` : `
+                    <span style="font-size:0.8rem; color:var(--muted)">No current active alerts for this technique in ingested logs.</span>
+                `}
+            </div>
+        `;
+        insp.style.display = 'block';
+        insp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function filterIncidentsByTechnique(keyword) {
+        switchView('incidents');
+        toast(`Switched to incident queue`);
+    }
+
+    // ── ONE-CLICK SIMULATE LIVE ATTACK DEMO ───────────────────────
+    let _simTopIncidentId = null;
+    let _simRunning = false;
+
+    async function simulateAttack(scenario, btnEl) {
+        if (_simRunning) return;
+        _simRunning = true;
+
+        // Disable all sim buttons
+        ['btnSimApt29', 'btnSimInsider', 'btnSimBenign'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = true;
+        });
+
+        // Hide old success banner
+        const banner = document.getElementById('simSuccessBanner');
+        if (banner) banner.style.display = 'none';
+
+        // Show terminal
+        const termWrap = document.getElementById('simTerminalWrap');
+        const termLog  = document.getElementById('simTerminalLog');
+        const progBar  = document.getElementById('simProgressBar');
+        const progStat = document.getElementById('simProgStatus');
+        const termCount = document.getElementById('simTermCount');
+        const titleEl  = document.getElementById('simTermTitleText');
+
+        termLog.innerHTML = '';
+        progBar.style.width = '0%';
+        termWrap.style.display = 'block';
+        termWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        const scenarioMeta = {
+            apt29:   { title: 'APT29 STATE-SPONSORED BREACH · MITRE Kill Chain Active', icon: '🔴', color: '#ef4444' },
+            insider: { title: 'INSIDER DATA EXFILTRATION · Behavioral Anomaly Detected', icon: '🟠', color: '#f97316' },
+            benign:  { title: 'NORMAL BUSINESS TRAFFIC · Clean Baseline Capture', icon: '🟢', color: '#10b981' }
+        };
+        const meta = scenarioMeta[scenario] || scenarioMeta.apt29;
+        titleEl.textContent = meta.title;
+        setProgStatus(progStat, '⏳ Phase 1/4: Injecting raw telemetry logs into parser...', '12%', progBar);
+
+        let lineCount = 0;
+        let sampleStream = [];
+
+        // Phase 1: Add initial terminal system messages
+        addTermSysLine(termLog, '$ ./security-log-analyzer --inject-scenario=' + scenario + ' --pipeline=full');
+        await sleep(220);
+        addTermSysLine(termLog, `[+] Building synthetic ${scenario.toUpperCase()} raw telemetry dataset...`);
+        await sleep(280);
+        addTermSysLine(termLog, '[+] Clearing previous session data...');
+        await sleep(200);
+        setProgStatus(progStat, '⏳ Phase 1/4: Injecting raw telemetry logs into parser...', '18%', progBar);
+
+        // Phase 2: Call backend
+        let apiData;
+        try {
+            const res = await fetch(`/api/simulate/${scenario}`, { method: 'POST' });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+                throw new Error(err.detail || 'Simulation API failed');
+            }
+            apiData = await res.json();
+            sampleStream = apiData.sample_stream || [];
+            _simTopIncidentId = apiData.top_incident_id || null;
+        } catch(e) {
+            setProgStatus(progStat, `❌ Error: ${e.message}`, '100%', progBar);
+            addTermSysLine(termLog, `[ERROR] ${e.message}`);
+            resetSimButtons();
+            return;
+        }
+
+        setProgStatus(progStat, '✅ Phase 1/4 Done. Running Sigma & MITRE rules...', '30%', progBar);
+        addTermSysLine(termLog, `[+] Ingested ${apiData.rows_ingested} raw log records into SQLite pipeline.`);
+        await sleep(180);
+        addTermSysLine(termLog, '[+] Running 7 Sigma-MITRE deterministic detection rules...');
+        await sleep(200);
+        addTermSysLine(termLog, '[+] Running Isolation Forest ML Behavioral Baseline Engine...');
+        await sleep(220);
+
+        // Phase 3: Stream sample logs
+        setProgStatus(progStat, '⏳ Phase 2/4: Streaming live telemetry records...', '38%', progBar);
+        const total = sampleStream.length;
+        for (let i = 0; i < total; i++) {
+            const rec = sampleStream[i];
+            lineCount++;
+            if (termCount) termCount.textContent = `${lineCount} logs streamed`;
+
+            addTermLogLine(termLog, rec);
+            termLog.scrollTop = termLog.scrollHeight;
+
+            // Pace: critical events slower for dramatic effect
+            const isCrit = rec.severity === 'critical';
+            const delay = isCrit ? 110 : (rec.severity === 'high' ? 70 : 45);
+            await sleep(delay);
+
+            // Progress from 38% to 72% during streaming
+            const pct = 38 + Math.round((i / total) * 34);
+            progBar.style.width = pct + '%';
+        }
+
+        // Phase 4: Correlate & finalize
+        setProgStatus(progStat, '⏳ Phase 3/4: Correlating alerts into multi-stage incidents...', '75%', progBar);
+        await sleep(280);
+        addTermSysLine(termLog, `[+] ${apiData.alerts_count} alerts generated & correlated.`);
+        await sleep(200);
+        addTermSysLine(termLog, `[+] ${apiData.incidents_count} multi-stage incidents detected.`);
+        await sleep(200);
+
+        setProgStatus(progStat, '⏳ Phase 4/4: Synchronizing Attack Blast Radius Graph...', '90%', progBar);
+        await sleep(300);
+        if (_simTopIncidentId) {
+            addTermSysLine(termLog, `[+] Top incident #${_simTopIncidentId} scored ${scenario === 'apt29' ? '100' : scenario === 'insider' ? '75' : '~20'}/100 — opening attack blast radius graph...`);
+        }
+        await sleep(250);
+        addTermSysLine(termLog, '[✓] Simulation complete. Dashboard synchronized.');
+        setProgStatus(progStat, `✅ Done — ${apiData.rows_ingested} logs · ${apiData.alerts_count} alerts · ${apiData.incidents_count} incidents`, '100%', progBar);
+
+        termLog.scrollTop = termLog.scrollHeight;
+
+        // Show success banner
+        const bannerIcon  = document.getElementById('simBannerIcon');
+        const bannerTitle = document.getElementById('simBannerTitle');
+        const bannerSub   = document.getElementById('simBannerSub');
+        const openGraphBtn = document.getElementById('simBtnOpenGraph');
+        if (bannerIcon) bannerIcon.textContent = meta.icon;
+        if (bannerTitle) bannerTitle.textContent = `${meta.title} — Simulation Complete`;
+        if (bannerSub) bannerSub.textContent = `${apiData.rows_ingested} logs ingested · ${apiData.alerts_count} alerts fired · ${apiData.incidents_count} incidents correlated. ${_simTopIncidentId ? `Top incident #${_simTopIncidentId} ready.` : ''}`;
+        if (openGraphBtn) openGraphBtn.style.display = _simTopIncidentId ? '' : 'none';
+        if (banner) banner.style.display = 'flex';
+
+        // Auto-open top incident attack graph after a 600ms pause (if attack scenario)
+        if (_simTopIncidentId && scenario !== 'benign') {
+            await sleep(600);
+            openModal(_simTopIncidentId);
+            // Auto-switch to graph tab after modal opens
+            await sleep(800);
+            switchModalTab('graph', _simTopIncidentId);
+        } else {
+            // For benign: just reload the KPI counters
+            await sleep(500);
+            window.location.reload();
+        }
+
+        resetSimButtons();
+    }
+
+    function addTermLogLine(container, rec) {
+        const line = document.createElement('div');
+        line.className = 'sim-term-line';
+        const sevClass = { critical: 'sim-tag-critical', high: 'sim-tag-high', medium: 'sim-tag-medium', clean: 'sim-tag-clean' }[rec.severity] || 'sim-tag-clean';
+        const stClass = rec.status === 'success' ? 'st-ok' : (rec.status === 'failed' ? 'st-fail' : 'st-blk');
+        const tsShort = rec.ts ? rec.ts.replace('T', ' ').replace('+00:00', 'Z').substring(0, 19) : '';
+        const resShort = rec.resource ? rec.resource.substring(0, 38) + (rec.resource.length > 38 ? '…' : '') : '';
+        line.innerHTML = `
+            <span class="sim-term-ts">${escHtml(tsShort)}</span>
+            <span class="sim-term-tag ${sevClass}">${escHtml(rec.tag || 'TELEMETRY')}</span>
+            <span class="sim-term-user">${escHtml(rec.user)}</span>
+            <span class="sim-term-action">${escHtml(rec.event)}</span>
+            <span class="sim-term-res">${escHtml(resShort)}</span>
+            <span class="sim-term-ip">[${escHtml(rec.ip)}]</span>
+            <span class="sim-term-status ${stClass}">${escHtml(rec.status)}</span>
+        `;
+        container.appendChild(line);
+    }
+
+    function addTermSysLine(container, msg) {
+        const line = document.createElement('div');
+        line.className = 'sim-term-line';
+        line.innerHTML = `<span style="color:#64748b; font-size:0.7rem; flex-shrink:0;">──</span><span style="color:#64748b; font-size:0.74rem;">${escHtml(msg)}</span>`;
+        container.appendChild(line);
+    }
+
+    function setProgStatus(el, msg, pct, bar) {
+        if (el) el.innerHTML = `<span>${escHtml(msg)}</span>`;
+        if (bar) bar.style.width = pct;
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function resetSimButtons() {
+        _simRunning = false;
+        ['btnSimApt29', 'btnSimInsider', 'btnSimBenign'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = false;
+        });
+    }
+
+    function openSimTopGraph() {
+        if (_simTopIncidentId) {
+            openModal(_simTopIncidentId);
+            setTimeout(() => switchModalTab('graph', _simTopIncidentId), 500);
+        }
+    }
+
+    function dismissSimBanner() {
+        const el = document.getElementById('simSuccessBanner');
+        if (el) el.style.display = 'none';
+    }
+
+    // Pre-load MITRE matrix on page startup
+    window.addEventListener('DOMContentLoaded', () => {
+        loadMitreMatrix();
+    });
 </script>
 </body>
 </html>

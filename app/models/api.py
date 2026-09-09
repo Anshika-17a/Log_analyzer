@@ -15,6 +15,9 @@ class AlertResponse(BaseModel):
     log_id: Optional[int] = None
     incident_id: Optional[int] = None
     created_at: Optional[str] = None
+    mitre_tactic: Optional[str] = None
+    mitre_technique_id: Optional[str] = None
+    mitre_technique_name: Optional[str] = None
 
 class IncidentResponse(BaseModel):
     id: int
@@ -29,6 +32,7 @@ class IncidentResponse(BaseModel):
     status: str
     created_at: str
     updated_at: Optional[str] = None
+    mitre_techniques: Optional[str] = None
     
 class IncidentListResponse(BaseModel):
     status: str
@@ -41,6 +45,11 @@ class IncidentActionResponse(BaseModel):
     priority: str
     reason: str
 
+class MitreTechniqueDetail(BaseModel):
+    tactic: str
+    technique_id: Optional[str] = None
+    technique_name: str
+
 class IncidentDetailResponse(BaseModel):
     status: str
     incident: IncidentResponse
@@ -49,6 +58,14 @@ class IncidentDetailResponse(BaseModel):
     ml_anomaly_score: Optional[float] = None
     contributing_alert_ids: List[int]
     recommended_actions: List[IncidentActionResponse]
+    mitre_techniques: Optional[List[MitreTechniqueDetail]] = None
+
+class MitreMatrixItem(BaseModel):
+    tactic: str
+    technique_id: Optional[str] = None
+    technique_name: str
+    incident_count: int
+    count: int
 
 class StatusUpdateRequest(BaseModel):
     status: str
@@ -63,6 +80,8 @@ class UploadResponse(BaseModel):
     status: str
     processed: int
     skipped: int
+    rows_inserted: Optional[int] = None
+    rows_skipped: Optional[int] = None
 
 class HealthResponse(BaseModel):
     status: str

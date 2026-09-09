@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from app.detection.mitre_mapping import get_mitre_info
 
 IP_COUNTRY_MAP = {
     "10.0.": "US",
@@ -17,6 +18,7 @@ def get_country(ip):
     return "Unknown"
 
 def _create_alert(row, ts, rule_id, rule_name, severity, points, evidence):
+    mitre = get_mitre_info(rule_id)
     return ({
         "rule_id": rule_id,
         "rule_name": rule_name,
@@ -26,6 +28,9 @@ def _create_alert(row, ts, rule_id, rule_name, severity, points, evidence):
         "ip": str(row["ip"]),
         "timestamp": ts.isoformat() if isinstance(ts, pd.Timestamp) else str(ts),
         "log_id": int(row["id"]),
+        "mitre_tactic": mitre.get("tactic"),
+        "mitre_technique_id": mitre.get("technique_id"),
+        "mitre_technique_name": mitre.get("technique_name"),
     }, evidence)
 
 def brute_force_001(df):
@@ -93,23 +98,19 @@ def impossible_travel_001(df):
     df_sub = df_sub[df_sub['country'] != 'Unknown']
     if df_sub.empty: return alerts
     
-    df_sub['country_id'] = df_sub['country'].astype('category').cat.codes
-    # Use raw=True if possible, but pandas apply on rolling might require raw=False. 
-    # For newer pandas, we can just use lambda x: len(np.unique(x))
-    counts = df_sub.groupby('user')['country_id'].rolling('10min').apply(lambda x: len(np.unique(x)), raw=True)
-    triggers = counts[counts >= 2]
-    
-    for (user, ts), count in triggers.items():
-        row_c = df_sub.loc[ts]
-        if isinstance(row_c, pd.DataFrame): row = row_c[row_c['user'] == user].iloc[-1]
-        else: row = row_c
-        
-        start_time = ts - pd.Timedelta(minutes=10)
-        window = df_sub[(df_sub['user'] == user) & (df_sub.index >= start_time) & (df_sub.index <= ts)]
-        countries = window['country'].unique()
-        
-        evidence = f"User {user} accessed from {len(countries)} different countries ({', '.join(countries)}) within 10 minutes (triggered at {ts})."
-        alerts.append(_create_alert(row, ts, "impossible_travel_001", "Impossible Travel", "High", 75, evidence))
+    df_sub = df_sub.sort_index()
+    for user, user_df in df_sub.groupby('user'):
+        if len(user_df) < 2:
+            continue
+        for i in range(1, len(user_df)):
+            curr_row = user_df.iloc[i]
+            curr_ts = user_df.index[i]
+            start_time = curr_ts - pd.Timedelta(minutes=10)
+            window = user_df[(user_df.index <= curr_ts) & (user_df.index >= start_time)]
+            countries = window['country'].unique()
+            if len(countries) >= 2:
+                evidence = f"User {user} accessed from {len(countries)} different countries ({', '.join(countries)}) within 10 minutes (triggered at {curr_ts})."
+                alerts.append(_create_alert(curr_row, curr_ts, "impossible_travel_001", "Impossible Travel", "High", 75, evidence))
     return alerts
 
 def exfil_burst_001(df):
