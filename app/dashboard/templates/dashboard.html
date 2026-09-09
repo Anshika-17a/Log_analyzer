@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Incident Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #22263a;
+            --border: #2e3250;
+            --text: #e2e8f0;
+            --muted: #64748b;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --green: #10b981;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --orange: #f97316;
+            --blue: #3b82f6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* ── TOP NAV ── */
+        .topnav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .topnav h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+        .topnav .badge { font-size: 0.7rem; background: var(--primary); color: white; padding: 2px 8px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+        .topnav .ts { font-size: 0.8rem; color: var(--muted); }
+
+        /* ── MAIN LAYOUT ── */
+        .main { padding: 1.5rem 2rem; max-width: 1600px; margin: 0 auto; }
+
+        /* ── PIPELINE STRIP ── */
+        .pipeline {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .pipeline label { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; }
+        .file-pick {
+            flex: 1;
+            min-width: 200px;
+            background: var(--surface2);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            color: var(--text);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .file-pick::-webkit-file-upload-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 12px;
+            margin-right: 10px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+        }
+        .btn {
+            padding: 0.55rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: opacity 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-upload  { background: var(--primary); color: white; }
+        .btn-detect  { background: var(--yellow); color: #1a1100; }
+        .btn-correlate { background: var(--green); color: white; }
+        .btn-neutral { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+        .btn-danger  { background: #7f1d1d; color: #fca5a5; }
+        .pipeline-arrow { color: var(--muted); font-size: 1.1rem; flex-shrink: 0; }
+        .pipe-status {
+            margin-left: auto;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            background: var(--surface2);
+            color: var(--muted);
+            flex-shrink: 0;
+            max-width: 320px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pipe-status.ok    { background: #052e16; color: #4ade80; }
+        .pipe-status.err   { background: #450a0a; color: #f87171; }
+        .pipe-status.busy  { background: #1e1b4b; color: #a5b4fc; }
+
+        /* ── KPI STRIP ── */
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .kpi {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .kpi-num { font-size: 2.2rem; font-weight: 700; line-height: 1; }
+        .kpi-lbl { font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 6px; }
+
+        /* ── MAIN GRID ── */
+        .grid2 { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; align-items: start; }
+
+        /* ── CHART PANEL ── */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+        .panel-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 1rem; }
+        .chart-wrap { width: 100%; position: relative; height: 240px; }
+
+        /* ── TABLE ── */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; vertical-align: middle; }
+        tr.irow { cursor: pointer; transition: background 0.12s; }
+        tr.irow:hover td { background: var(--surface2) !important; }
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .r-critical { background: #450a0a; color: #f87171; }
+        .r-high     { background: #431407; color: #fdba74; }
+        .r-medium   { background: #1e3a5f; color: #93c5fd; }
+        .r-low      { background: #052e16; color: #86efac; }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--surface2);
+            color: var(--muted);
+        }
+        .s-open           { background: #1e1b4b; color: #a5b4fc; }
+        .s-reviewing      { background: #422006; color: #fcd34d; }
+        .s-resolved       { background: #052e16; color: #86efac; }
+        .s-false_positive { background: #1c1c1c; color: #6b7280; }
+
+        /* ── MODAL ── */
+        .overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        .overlay.active { display: flex; }
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 780px;
+            max-height: 92vh;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute; top: 1.25rem; right: 1.25rem;
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--muted); width: 32px; height: 32px;
+            border-radius: 50%; cursor: pointer; font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: color 0.15s;
+        }
+        .modal-close:hover { color: var(--text); }
+        .modal h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.25rem; padding-right: 2.5rem; }
+        .modal-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.25rem; }
+        .sec-head {
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--muted);
+            margin: 1.5rem 0 0.6rem; padding-bottom: 0.4rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .evidence-item {
+            background: var(--surface2);
+            border-left: 3px solid var(--primary);
+            border-radius: 6px;
+            padding: 0.6rem 0.9rem;
+            font-size: 0.82rem;
+            margin-bottom: 0.5rem;
+            color: #a5b4fc;
+        }
+        .action-item {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        .action-priority {
+            flex-shrink: 0;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .p-immediate { background: #450a0a; color: #f87171; }
+        .p-high      { background: #431407; color: #fdba74; }
+        .p-medium    { background: #1e3a5f; color: #93c5fd; }
+        .p-low       { background: #052e16; color: #86efac; }
+        .action-text { font-size: 0.85rem; line-height: 1.5; }
+        .action-reason { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+
+        /* Status buttons */
+        .status-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .status-btn {
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--muted);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.15s;
+        }
+        .status-btn:hover { opacity: 0.85; }
+        .status-btn.active-open           { background: #1e1b4b; color: #a5b4fc; border-color: #4f46e5; }
+        .status-btn.active-reviewing      { background: #422006; color: #fcd34d; border-color: #b45309; }
+        .status-btn.active-resolved       { background: #052e16; color: #86efac; border-color: #059669; }
+        .status-btn.active-false_positive { background: #1c1c1c; color: #6b7280; border-color: #374151; }
+
+        /* Report buttons */
+        .report-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+        /* Narrative box */
+        .narrative-box {
+            background: var(--surface2);
+            border-left: 3px solid var(--primary);
+            border-radius: 6px;
+            padding: 1rem;
+            font-size: 0.84rem;
+            line-height: 1.7;
+            color: #c7d2fe;
+            white-space: pre-wrap;
+            margin-top: 0.75rem;
+        }
+
+        /* ML score bar */
+        .ml-bar-wrap { background: var(--surface2); border-radius: 999px; height: 8px; margin: 0.5rem 0; }
+        .ml-bar { height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--green), var(--red)); }
+        .ml-score-label { font-size: 0.8rem; color: var(--muted); }
+
+        /* Toast */
+        #toast {
+            position: fixed; bottom: 1.5rem; right: 1.5rem;
+            background: var(--green); color: white;
+            padding: 0.75rem 1.25rem; border-radius: 8px;
+            font-size: 0.85rem; font-weight: 600;
+            opacity: 0; transform: translateY(8px);
+            transition: all 0.2s; z-index: 999; pointer-events: none;
+        }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 900px) {
+            .grid2 { grid-template-columns: 1fr; }
+            .kpis  { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .kpis { grid-template-columns: 1fr 1fr; }
+            .main { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+    <div><h1>Security Incident Dashboard <span class="badge">LIVE</span></h1></div>
+    <div class="ts">Last Refreshed: {{ last_refreshed }}</div>
+</nav>
+
+<div class="main">
+
+    <!-- PIPELINE -->
+    <div class="pipeline">
+        <label>Pipeline</label>
+        <input type="file" id="logFileInput" accept=".csv,.json,.jsonl,.log,.syslog,.txt,.ndjson" class="file-pick">
+        <button class="btn btn-upload" id="btnUpload" onclick="runPipeline()">
+            ▶ Run Full Analysis
+        </button>
+        <span class="pipeline-arrow">or run manually →</span>
+        <button class="btn btn-upload"   id="btnStep1" onclick="doUpload()">① Upload</button>
+        <button class="btn btn-detect"   id="btnStep2" onclick="doDetect()">② Detect</button>
+        <button class="btn btn-correlate" id="btnStep3" onclick="doCorrelate()">③ Correlate & Reload</button>
+        <div class="pipe-status" id="pipeStatus">Select a CSV and click ▶ Run Full Analysis</div>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpis">
+        <div class="kpi">
+            <div class="kpi-num">{{ counts.total }}</div>
+            <div class="kpi-lbl">Total Incidents</div>
+        </div>
+        <div class="kpi" style="border-top: 3px solid var(--red)">
+            <div class="kpi-num" style="color:var(--red)">{{ counts.critical }}</div>
+            <div class="kpi-lbl">Critical</div>
+        </div>
+        <div class="kpi" style="border-top: 3px solid var(--orange)">
+            <div class="kpi-num" style="color:var(--orange)">{{ counts.high }}</div>
+            <div class="kpi-lbl">High</div>
+        </div>
+        <div class="kpi" style="border-top: 3px solid var(--blue)">
+            <div class="kpi-num" style="color:var(--blue)">{{ counts.medium }}</div>
+            <div class="kpi-lbl">Medium</div>
+        </div>
+        <div class="kpi" style="border-top: 3px solid var(--green)">
+            <div class="kpi-num" style="color:var(--green)">{{ counts.low }}</div>
+            <div class="kpi-lbl">Low</div>
+        </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="grid2">
+
+        <!-- CHART -->
+        <div class="panel">
+            <div class="panel-title">Risk Distribution</div>
+            {% if counts.total > 0 %}
+            <div class="chart-wrap">
+                <canvas id="riskChart"></canvas>
+            </div>
+            {% else %}
+            <div style="height:240px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:0.9rem; text-align:center;">
+                No incidents yet.<br>Upload a log file to begin.
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- INCIDENT TABLE -->
+        <div class="panel">
+            <div class="panel-title">Ranked Incidents (Top 20 by Score) — Click a row for details</div>
+            <div class="table-wrap">
+                {% if top_incidents %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>User</th>
+                            <th>Risk</th>
+                            <th>Score</th>
+                            <th># Alerts</th>
+                            <th>Rules Fired</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inc in top_incidents %}
+                        <tr class="irow" onclick="openModal({{ inc.id }})">
+                            <td style="color:var(--muted); font-size:0.8rem;">{{ inc.id }}</td>
+                            <td><strong>{{ inc.user }}</strong></td>
+                            <td>
+                                {% if inc.risk_level == 'Critical' %}<span class="risk-badge r-critical">● Critical</span>
+                                {% elif inc.risk_level == 'High' %}<span class="risk-badge r-high">● High</span>
+                                {% elif inc.risk_level == 'Medium' %}<span class="risk-badge r-medium">● Medium</span>
+                                {% else %}<span class="risk-badge r-low">● Low</span>{% endif %}
+                            </td>
+                            <td><strong>{{ inc.score }}</strong></td>
+                            <td>{{ inc.alert_count }}</td>
+                            <td style="font-size:0.78rem; color:var(--muted);">{{ inc.rules }}</td>
+                            <td>
+                                {% if inc.status == 'open' %}<span class="status-badge s-open">open</span>
+                                {% elif inc.status == 'reviewing' %}<span class="status-badge s-reviewing">reviewing</span>
+                                {% elif inc.status == 'resolved' %}<span class="status-badge s-resolved">resolved</span>
+                                {% elif inc.status == 'false_positive' %}<span class="status-badge s-false_positive">false positive</span>
+                                {% else %}<span class="status-badge">{{ inc.status }}</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="padding:3rem; text-align:center; color:var(--muted);">
+                    No incidents found. Upload a log CSV and run the pipeline above.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- INCIDENT DETAIL MODAL -->
+<div class="overlay" id="overlay" onclick="maybeClose(event)">
+    <div class="modal" id="modal">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div id="modalInner">
+            <p style="color:var(--muted)">Loading...</p>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+    // ── PIPELINE HELPERS ──────────────────────────────────────────
+    function setStatus(msg, cls='') {
+        const el = document.getElementById('pipeStatus');
+        el.textContent = msg;
+        el.className = 'pipe-status ' + cls;
+    }
+    function toast(msg, isErr=false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.background = isErr ? 'var(--red)' : 'var(--green)';
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function doUpload() {
+        const fileInput = document.getElementById('logFileInput');
+        if (!fileInput.files.length) { setStatus('⚠ Please select a CSV file first.', 'err'); return null; }
+        setStatus('⏳ Uploading logs...', 'busy');
+        document.getElementById('btnUpload').disabled = true;
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        try {
+            const res = await fetch('/api/logs/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (res.ok) {
+                setStatus(`✅ Uploaded: ${data.processed} rows ingested, ${data.skipped} skipped.`, 'ok');
+                return data;
+            } else {
+                setStatus(`❌ Upload failed: ${data.detail}`, 'err');
+                toast(data.detail, true);
+                return null;
+            }
+        } catch(e) { setStatus('❌ Network error during upload.', 'err'); return null; }
+        finally { document.getElementById('btnUpload').disabled = false; }
+    }
+
+    async function doDetect() {
+        setStatus('⏳ Running rules & ML detection… (may take 10–30s on large files)', 'busy');
+        try {
+            const res = await fetch('/api/alerts');
+            const data = await res.json();
+            if (res.ok) {
+                const n = data.alerts ? data.alerts.length : '?';
+                setStatus(`✅ Detection: ${n} alerts generated.`, 'ok');
+                return data;
+            } else { setStatus('❌ Detection failed.', 'err'); return null; }
+        } catch(e) { setStatus('❌ Network error during detection.', 'err'); return null; }
+    }
+
+    async function doCorrelate() {
+        setStatus('⏳ Correlating alerts into incidents…', 'busy');
+        try {
+            const res = await fetch('/api/incidents');
+            if (res.ok) {
+                setStatus('✅ Done! Reloading dashboard…', 'ok');
+                setTimeout(() => window.location.reload(), 1000);
+                return true;
+            } else { setStatus('❌ Correlation failed.', 'err'); return false; }
+        } catch(e) { setStatus('❌ Network error during correlation.', 'err'); return false; }
+    }
+
+    async function runPipeline() {
+        const uploaded = await doUpload();
+        if (!uploaded) return;
+        const detected = await doDetect();
+        if (!detected) return;
+        await doCorrelate();
+    }
+
+    // ── CHART ──────────────────────────────────────────────────────
+    {% if counts.total > 0 %}
+    const ctx = document.getElementById('riskChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Critical', 'High', 'Medium', 'Low'],
+            datasets: [{
+                data: [{{ counts.critical }}, {{ counts.high }}, {{ counts.medium }}, {{ counts.low }}],
+                backgroundColor: ['#ef4444','#f97316','#3b82f6','#10b981'],
+                borderColor: '#1a1d27',
+                borderWidth: 3,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#94a3b8', padding: 16, font: { size: 12 } }
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // ── MODAL ──────────────────────────────────────────────────────
+    let currentIncidentId = null;
+
+    async function openModal(id) {
+        currentIncidentId = id;
+        document.getElementById('overlay').classList.add('active');
+        document.getElementById('modalInner').innerHTML = '<p style="color:var(--muted); padding: 2rem 0;">Loading incident data…</p>';
+
+        try {
+            const res = await fetch(`/api/incidents/${id}`);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const raw = await res.json();
+            // API wraps incident fields under raw.incident — flatten it
+            const d = { ...raw.incident, ...raw };
+            renderModal(d);
+        } catch(e) {
+            document.getElementById('modalInner').innerHTML = `<p style="color:var(--red)">Error loading incident: ${e.message}</p>`;
+        }
+    }
+
+    function renderModal(d) {
+        const riskClass = { Critical:'r-critical', High:'r-high', Medium:'r-medium', Low:'r-low' }[d.risk_level] || 'r-low';
+        const statusClass = { open:'s-open', reviewing:'s-reviewing', resolved:'s-resolved', false_positive:'s-false_positive' }[d.status] || '';
+
+        // Evidence
+        const evHTML = (d.evidence_strings || []).map(e =>
+            `<div class="evidence-item">${escHtml(e)}</div>`
+        ).join('') || '<p style="color:var(--muted); font-size:0.85rem">No specific evidence logged.</p>';
+
+        // ML score
+        let mlHTML = '';
+        if (d.ml_anomaly_score !== null && d.ml_anomaly_score !== undefined) {
+            const pct = Math.min(100, Math.max(0, d.ml_anomaly_score));
+            mlHTML = `
+                <div class="ml-score-label">Anomaly score: <strong>${d.ml_anomaly_score.toFixed(3)}</strong>
+                (higher = more anomalous)</div>
+                <div class="ml-bar-wrap"><div class="ml-bar" style="width:${pct}%"></div></div>
+                <div class="ml-score-label" style="margin-top:4px; font-size:0.75rem;">
+                    This user's recent behaviour deviated significantly from their established baseline pattern.</div>`;
+        } else {
+            mlHTML = '<p style="color:var(--muted); font-size:0.85rem">No ML anomaly detected for this incident.</p>';
+        }
+
+        // Recommended actions
+        const actHTML = (d.recommended_actions || []).length > 0
+            ? d.recommended_actions.map(a => {
+                const pc = { IMMEDIATE:'p-immediate', HIGH:'p-high', MEDIUM:'p-medium', LOW:'p-low' }[a.priority] || 'p-medium';
+                return `<div class="action-item">
+                    <span class="action-priority ${pc}">${escHtml(a.priority)}</span>
+                    <div>
+                        <div class="action-text">${escHtml(a.action)}</div>
+                        <div class="action-reason">${escHtml(a.reason || '')}</div>
+                    </div>
+                </div>`;
+            }).join('')
+            : '<p style="color:var(--muted); font-size:0.85rem">No specific remediation actions mapped for this incident.</p>';
+
+        document.getElementById('modalInner').innerHTML = `
+            <h2>Incident #${d.id} — ${escHtml(d.user)}</h2>
+            <div class="modal-meta">
+                <span class="risk-badge ${riskClass}" style="margin-right:8px">● ${escHtml(d.risk_level)}</span>
+                <span class="status-badge ${statusClass}" id="currentStatusBadge">${escHtml(d.status)}</span>
+                &nbsp;·&nbsp; Score: <strong>${d.score}</strong>
+                &nbsp;·&nbsp; ${(d.contributing_alert_ids || []).length} alert(s) correlated
+            </div>
+
+            <!-- STATUS ACTIONS -->
+            <div class="sec-head">Update Status</div>
+            <div class="status-actions">
+                <button class="status-btn ${d.status==='open' ? 'active-open' : ''}"
+                    onclick="updateStatus(${d.id}, 'open', this)">Open</button>
+                <button class="status-btn ${d.status==='reviewing' ? 'active-reviewing' : ''}"
+                    onclick="updateStatus(${d.id}, 'reviewing', this)">Reviewing</button>
+                <button class="status-btn ${d.status==='resolved' ? 'active-resolved' : ''}"
+                    onclick="updateStatus(${d.id}, 'resolved', this)">Resolved</button>
+                <button class="status-btn ${d.status==='false_positive' ? 'active-false_positive' : ''}"
+                    onclick="updateStatus(${d.id}, 'false_positive', this)">False Positive</button>
+            </div>
+
+            <!-- RECOMMENDED ACTIONS -->
+            <div class="sec-head">Recommended Actions</div>
+            ${actHTML}
+
+            <!-- EVIDENCE -->
+            <div class="sec-head">Evidence (Raw Alert Signals)</div>
+            ${evHTML}
+
+            <!-- ML SCORE -->
+            <div class="sec-head">ML Anomaly Score</div>
+            ${mlHTML}
+
+            <!-- AI NARRATIVE -->
+            <div class="sec-head">AI Narrative</div>
+            <button class="btn btn-upload" id="btnNarrative" onclick="fetchNarrative(${d.id})"
+                style="font-size:0.8rem; padding:0.4rem 1rem;">✦ Generate AI Narrative</button>
+            <div id="narrativeBox" style="display:none" class="narrative-box"></div>
+            <div id="narrativeLoading" style="display:none; color:var(--muted); font-size:0.85rem; margin-top:0.5rem;">
+                Clustering logs and querying LLM… please wait.
+            </div>
+
+            <!-- DOWNLOAD REPORT -->
+            <div class="sec-head">Download Report</div>
+            <div class="report-btns">
+                <a href="/api/reports/${d.id}?format=md" target="_blank" class="btn btn-neutral" style="text-decoration:none;">
+                    ↓ Markdown Report
+                </a>
+                <a href="/api/reports/${d.id}?format=pdf" target="_blank" class="btn btn-neutral" style="text-decoration:none;">
+                    ↓ PDF Report
+                </a>
+            </div>
+        `;
+    }
+
+    async function updateStatus(id, status, btn) {
+        try {
+            const res = await fetch(`/api/incidents/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            if (res.ok) {
+                toast(`✅ Status updated to "${status}"`);
+                // Update all status buttons styling
+                document.querySelectorAll('.status-btn').forEach(b => {
+                    b.className = 'status-btn';
+                });
+                btn.classList.add('active-' + status.replace('_', '_'));
+                // Update inline badge
+                const badge = document.getElementById('currentStatusBadge');
+                if (badge) {
+                    badge.textContent = status;
+                    badge.className = 'status-badge s-' + status;
+                }
+            } else {
+                let errMsg = 'Failed';
+                try { const err = await res.json(); errMsg = err.detail || JSON.stringify(err); } catch(_) {}
+                toast('❌ Error: ' + errMsg, true);
+            }
+        } catch(e) { toast('❌ Network error: ' + e.message, true); }
+    }
+
+    async function fetchNarrative(id) {
+        document.getElementById('btnNarrative').style.display = 'none';
+        document.getElementById('narrativeLoading').style.display = 'block';
+        try {
+            const res = await fetch(`/api/incidents/${id}/narrative`);
+            const data = await res.json();
+            document.getElementById('narrativeLoading').style.display = 'none';
+            const box = document.getElementById('narrativeBox');
+            box.style.display = 'block';
+            if (data.narrative && data.narrative.trim()) {
+                box.textContent = data.narrative;
+            } else if (data.detail) {
+                box.textContent = '⚠ ' + data.detail;
+            } else {
+                box.textContent = 'No narrative returned. Make sure OPENAI_API_KEY is set in your .env file.';
+            }
+        } catch(e) {
+            document.getElementById('narrativeLoading').style.display = 'none';
+            document.getElementById('narrativeBox').style.display = 'block';
+            document.getElementById('narrativeBox').textContent = '❌ Error: ' + e.message;
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('overlay').classList.remove('active');
+        currentIncidentId = null;
+    }
+    function maybeClose(e) {
+        if (e.target === document.getElementById('overlay')) closeModal();
+    }
+
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+</script>
+</body>
+</html>

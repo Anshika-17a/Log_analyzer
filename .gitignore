@@ -1,0 +1,35 @@
+# Environments & Secrets
+.env
+.env.local
+*.env
+
+# Python & Virtual Environments
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Databases & Local Data
+logs.db
+*.sqlite
+*.sqlite3
+*.db
+
+# Caches & Test Artefacts
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
