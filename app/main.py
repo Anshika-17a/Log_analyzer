@@ -256,6 +256,42 @@ def get_incident_story(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=story["error"])
     return story
 
+@app.get("/api/incidents/{id}/narrative", response_model=NarrativeResponse, summary="Generate LLM Narrative", description="Clusters incident logs via Drain3 and prompts an LLM for an executive summary.")
+def get_incident_narrative(id: int, db: Session = Depends(get_db)):
+    incident = db.query(Incident).filter(Incident.id == id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+        
+    query = db.query(Log).filter(Log.user == incident.user)
+    if incident.first_event_time and incident.last_event_time:
+        query = query.filter(Log.ts >= incident.first_event_time, Log.ts <= incident.last_event_time)
+    logs = query.all()
+    if not logs:
+        logs = db.query(Log).filter(Log.user == incident.user).limit(50).all()
+        
+    raw_lines = [l.raw_line if l.raw_line else f"{l.ts} {l.action} user={l.user} src_ip={l.src_ip} status={l.status}" for l in logs]
+    
+    if not raw_lines:
+        alerts = db.query(Alert).filter(Alert.incident_id == id).all()
+        raw_lines = [a.evidence for a in alerts if a.evidence]
+        
+    clustered = cluster_logs(raw_lines)
+    
+    context = {
+        "user": incident.user,
+        "risk_level": incident.risk_level,
+        "score": incident.score,
+        "rules": incident.rules
+    }
+    
+    narrative = generate_llm_narrative(context, clustered)
+    
+    return {
+        "status": "success",
+        "incident_id": id,
+        "narrative": narrative
+    }
+
 
 @app.get("/api/mitre/matrix", response_model=List[MitreMatrixItem], summary="MITRE ATT&CK Matrix", description="Returns a summary across all current incidents: for every technique that has appeared, how many incidents it appeared in.")
 def get_mitre_matrix(db: Session = Depends(get_db)):
