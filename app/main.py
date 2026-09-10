@@ -242,6 +242,60 @@ def get_incident_detail(id: int, db: Session = Depends(get_db)):
         "mitre_techniques": distinct_techniques
     }
 
+@app.put("/api/incidents/{id}/status", summary="Update Incident Status", description="Atomically updates the status of an incident and records an AuditLog entry.")
+def update_incident_status(id: int, request: StatusUpdateRequest, db: Session = Depends(get_db)):
+    if request.status not in ("open", "reviewing", "resolved", "false_positive"):
+        raise HTTPException(status_code=422, detail="Invalid status")
+        
+    incident = db.query(Incident).filter(Incident.id == id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+        
+    old_status = incident.status
+    
+    try:
+        incident.status = request.status
+        incident.updated_at = pd.Timestamp.now(tz="UTC").isoformat()
+        
+        audit_log = AuditLog(
+            incident_id=id,
+            change_type="status_update",
+            old_value=old_status,
+            new_value=request.status,
+            changed_by=getattr(request, "changed_by", "system")
+        )
+        db.add(audit_log)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Database transaction failed")
+        
+    return {"status": "success", "message": "Incident status updated successfully"}
+
+@app.get("/api/reports/summary", summary="Org-wide Summary Report", description="Generates an organization-wide summary report across all open incidents.")
+def get_summary_report(format: str = "pdf", db: Session = Depends(get_db)):
+    incidents = db.query(Incident).filter(Incident.status == "open").all()
+    md = generate_summary_report_md(incidents)
+    if format == "md":
+        return PlainTextResponse(md)
+    pdf_bytes = convert_markdown_to_pdf(None, summary_incidents=incidents)
+    return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="security_summary_report.pdf"'})
+
+@app.get("/api/reports/{id}", summary="Incident Report", description="Generates a human-readable report for a specific incident.")
+def get_incident_report(id: int, format: str = "pdf", db: Session = Depends(get_db)):
+    incident = db.query(Incident).filter(Incident.id == id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+        
+    alerts = db.query(Alert).filter(Alert.incident_id == id).all()
+    actions = db.query(IncidentAction).filter(IncidentAction.incident_id == id).all()
+    
+    md = generate_incident_report_md(incident, alerts, actions)
+    if format == "md":
+        return PlainTextResponse(md)
+    pdf_bytes = convert_markdown_to_pdf(None, incident=incident, alerts=alerts, actions=actions)
+    return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="incident_{id}_report.pdf"'})
+
 @app.get("/api/incidents/{id}/graph", summary="Get Incident Attack Graph", description="Returns an entity-relationship graph linking users, IPs, triggered rules, MITRE ATT&CK techniques, and containment actions.")
 def get_incident_graph(id: int, db: Session = Depends(get_db)):
     graph = build_incident_graph(id, db)
